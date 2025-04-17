@@ -38,59 +38,44 @@ class OpenAIClient(TextProviderInterface):
         max_tokens: Optional[int] = 150, # Default max tokens
         **kwargs: Any
     ) -> CompletionResponse:
-        """Generates text completion using the OpenAI API."""
+        """Generates text completion using the OpenAI chat completions API."""
 
         if not prompt and not messages:
             raise ValueError("Either 'prompt' or 'messages' must be provided.")
+        if prompt and messages:
+            # Avoid ambiguity, though one could potentially combine them
+            # For now, let's treat messages as overriding prompt if both are given
+            prompt = None # Or raise ValueError("Provide either 'prompt' or 'messages', not both.")
 
         # Default model if not specified
         model = model or "gpt-3.5-turbo"
 
+        # Prepare messages for the chat API
+        if not messages:
+            # Convert prompt to messages format
+            chat_messages = [{"role": "user", "content": prompt}]
+        else:
+            chat_messages = messages
+
         try:
-            # Prepare common parameters, preferring messages if available
-            common_params = {
-                "model": model,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
+            # Always use chat completions endpoint
+            response = self.client.chat.completions.create(
+                messages=chat_messages,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
                 **kwargs, # Include provider-specific kwargs
+            )
+
+            completion_text = response.choices[0].message.content or ""
+            # Extract potential metadata
+            metadata = {
+                'finish_reason': response.choices[0].finish_reason,
+                'usage': response.usage.dict() if response.usage else None,
+                'model': response.model,
+                'id': response.id,
+                'created': response.created,
             }
-
-            if messages:
-                response = self.client.chat.completions.create(
-                    messages=messages,
-                    **common_params
-                )
-                completion_text = response.choices[0].message.content or ""
-                # Extract potential metadata
-                metadata = {
-                    'finish_reason': response.choices[0].finish_reason,
-                    'usage': response.usage.dict() if response.usage else None,
-                    'model': response.model,
-                    'id': response.id,
-                    'created': response.created,
-                }
-            elif prompt:
-                # Fallback to legacy completions endpoint if only prompt is given
-                # Note: Newer models are often chat-only. This might need adjustment
-                # depending on the default model and supported endpoints.
-                # Consider raising an error or converting prompt to messages format.
-                # For now, let's assume a suitable model is chosen that supports completion.
-                response = self.client.completions.create(
-                    prompt=prompt,
-                    **common_params
-                )
-                completion_text = response.choices[0].text or ""
-                metadata = {
-                    'finish_reason': response.choices[0].finish_reason,
-                    'usage': response.usage.dict() if response.usage else None,
-                    'model': response.model,
-                    'id': response.id,
-                    'created': response.created,
-                }
-            else:
-                # This case should be caught by the initial check, but added for completeness
-                 raise ValueError("Could not determine completion method.")
-
 
             return CompletionResponse(text=completion_text.strip(), metadata=metadata)
 

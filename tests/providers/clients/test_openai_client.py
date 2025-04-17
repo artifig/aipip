@@ -36,25 +36,6 @@ def mock_openai_client_instance():
     mock_chat_response.created = 1677652288
     mock_client.chat.completions.create.return_value = mock_chat_response
 
-    # Mock legacy completion response
-    mock_legacy_choice = MagicMock()
-    mock_legacy_choice.text = " Mock legacy completion text "
-    mock_legacy_choice.finish_reason = "length"
-    mock_legacy_response = MagicMock()
-    mock_legacy_response.choices = [mock_legacy_choice]
-    # Configure mock usage object for legacy
-    mock_legacy_usage = MagicMock(prompt_tokens=5, completion_tokens=15, total_tokens=20)
-    mock_legacy_usage.dict.return_value = { # Define what .dict() should return
-        'prompt_tokens': 5,
-        'completion_tokens': 15,
-        'total_tokens': 20
-    }
-    mock_legacy_response.usage = mock_legacy_usage
-    mock_legacy_response.model = "gpt-3.5-turbo-instruct-test"
-    mock_legacy_response.id = "cmpl-456"
-    mock_legacy_response.created = 1677652299
-    mock_client.completions.create.return_value = mock_legacy_response
-
     return mock_client
 
 # --- Test Cases ---
@@ -121,13 +102,11 @@ def test_generate_completion_with_messages(mock_openai_api_key, mock_openai_clie
         assert response.metadata['finish_reason'] == "stop"
         assert response.metadata['usage']['total_tokens'] == 30
 
-def test_generate_completion_with_prompt(mock_openai_api_key, mock_openai_client_instance):
-    """Test generate_completion using the legacy completions endpoint."""
+def test_generate_completion_prompt_gets_converted_to_messages(mock_openai_api_key, mock_openai_client_instance):
+    """Test that a prompt string is correctly converted to messages format."""
     # Arrange
-    prompt = "Once upon a time"
-    test_model = "gpt-3.5-turbo-instruct-test"
-    test_temp = 0.8
-    test_max_tokens = 50
+    prompt = "Convert me to messages"
+    test_model = "gpt-4o-test"
 
     with patch('aipip.providers.clients.openai_client.openai.OpenAI', return_value=mock_openai_client_instance) as MockOpenAICtor:
         client = OpenAIClient(api_key=mock_openai_api_key)
@@ -135,24 +114,20 @@ def test_generate_completion_with_prompt(mock_openai_api_key, mock_openai_client
         # Act
         response = client.generate_completion(
             prompt=prompt,
-            model=test_model,
-            temperature=test_temp,
-            max_tokens=test_max_tokens
+            model=test_model
         )
 
-        # Assert
-        mock_openai_client_instance.completions.create.assert_called_once_with(
-            prompt=prompt,
-            model=test_model,
-            temperature=test_temp,
-            max_tokens=test_max_tokens
-        )
-        mock_openai_client_instance.chat.completions.create.assert_not_called()
+        # Assert that chat completions was called
+        mock_openai_client_instance.chat.completions.create.assert_called_once()
+
+        # Assert that the messages argument was correctly formatted
+        call_args, call_kwargs = mock_openai_client_instance.chat.completions.create.call_args
+        expected_messages = [{"role": "user", "content": prompt}]
+        assert call_kwargs.get('messages') == expected_messages
+
+        # Assert response is still correct (based on the chat mock)
         assert isinstance(response, CompletionResponse)
-        assert response.text == "Mock legacy completion text"
-        assert response.metadata['model'] == test_model
-        assert response.metadata['finish_reason'] == "length"
-        assert response.metadata['usage']['total_tokens'] == 20
+        assert response.text == "Mock chat completion text"
 
 def test_generate_completion_no_input_raises_error(mock_openai_api_key):
     """Test ValueError is raised if neither prompt nor messages are provided."""
