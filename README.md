@@ -175,6 +175,18 @@ It is highly recommended to use a virtual environment for local development to i
     deactivate
     ```
 
+## Testing Strategy
+
+This project uses `pytest` as the testing framework.
+
+- Tests are located in the `tests/` directory.
+- The structure of `tests/` should mirror the structure of `src/aipip/` where applicable (e.g., tests for `src/aipip/config/` go into `tests/config/`).
+- The goal is to achieve good test coverage through a combination of:
+    - **Unit Tests:** Testing individual functions, classes, or methods in isolation.
+    - **Integration Tests:** Testing the interaction between different components (e.g., a service interacting with a provider client).
+- Focus on testing the core logic, public interfaces, and expected behaviors (including edge cases and error handling) of the package components.
+- Tests can be run using the `pytest` command after setting up the local development environment (see "Local Development Setup" section).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
