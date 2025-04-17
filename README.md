@@ -187,6 +187,23 @@ This project uses `pytest` as the testing framework.
 - Focus on testing the core logic, public interfaces, and expected behaviors (including edge cases and error handling) of the package components.
 - Tests can be run using the `pytest` command after setting up the local development environment (see "Local Development Setup" section).
 
+## Handling Upstream API Changes
+
+This library relies on the official Python SDKs provided by the respective AI vendors (e.g., `openai`, `google-generativeai`, `anthropic`). Changes to these upstream SDKs or their underlying APIs can impact `aipip`.
+
+**Strategy:**
+
+1.  **Dependency Management:** We specify version ranges for provider SDKs in `pyproject.toml` (e.g., `openai>=1.0,<2.0`) to prevent automatically pulling in potentially breaking major version updates. Minor/patch updates from providers will be tested before updating the lower bound.
+2.  **Interface Stability:** The core `TextProviderInterface` aims for stability. Common parameters are defined explicitly. Provider-specific parameters are handled via `**kwargs` passed directly to the client implementation, allowing flexibility without constant interface changes.
+3.  **Client Implementation Responsibility:** Each concrete client class (e.g., `OpenAIClient`) is responsible for adapting to changes in its specific upstream SDK. This involves updating:
+    *   Parameter mapping (from interface calls to SDK calls).
+    *   Method calls to the SDK.
+    *   Response parsing.
+4.  **Testing:** Our unit tests for each client (e.g., `test_openai_client.py`) use mocking to simulate the provider SDK. These tests are crucial for detecting when an SDK update breaks our client's implementation, as the mocks or the expected call signatures/responses will no longer align.
+5.  **Monitoring & Maintenance:** We will monitor provider announcements and SDK releases. When breaking changes occur in an upstream SDK, the corresponding `aipip` client implementation and its tests will be updated, and a new version of `aipip` will be released.
+
+This approach allows `aipip` to provide a consistent interface while managing the inevitable evolution of the underlying provider APIs and SDKs.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
