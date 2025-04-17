@@ -132,9 +132,48 @@ This README outlines the target architecture. We will migrate functionality from
 
 *(Instructions will be added here once the core components are functional)*
 
+```bash
 # Example assuming installation via pip install .
 # (Specific CLI command might change)
 python -m aipip.cli.run_completion --provider openai --prompt "Hello world"
+```
+
+## Local Development Setup
+
+It is highly recommended to use a virtual environment for local development to isolate project dependencies.
+
+1.  **Create a virtual environment:**
+    ```bash
+    python -m venv .venv
+    ```
+
+2.  **Activate the environment:**
+    *   macOS/Linux:
+        ```bash
+        source .venv/bin/activate
+        ```
+    *   Windows (Command Prompt/PowerShell):
+        ```bash
+        .\.venv\Scripts\activate
+        ```
+    (Your terminal prompt should now show `(.venv)`)
+
+3.  **Install the package in editable mode with development dependencies:**
+    ```bash
+    pip install -e '.[dev]'
+    ```
+    The `-e` flag installs the package in "editable" mode, meaning changes to the source code in `src/` will be reflected immediately without needing to reinstall. The `[dev]` part installs the extra dependencies listed under `[project.optional-dependencies.dev]` in `pyproject.toml` (like `pytest`).
+
+4.  **Run tests:**
+    With the virtual environment activated, you can run tests using pytest:
+    ```bash
+    pytest
+    ```
+
+5.  **Deactivate the environment** when you're finished:
+    ```bash
+    deactivate
+    ```
 
 ## License
 

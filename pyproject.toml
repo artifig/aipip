@@ -31,4 +31,9 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/ottomattas/aipip" # Placeholder URL - please update if incorrect
-"Bug Tracker" = "https://github.com/ottomattas/aipip/issues" # Placeholder URL - please update if incorrect 
+"Bug Tracker" = "https://github.com/ottomattas/aipip/issues" # Placeholder URL - please update if incorrect
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+] 
