@@ -142,6 +142,10 @@ export GOOGLE_API_KEY="your_key"
 python llm_app/cli/run_completion.py --provider openai --prompt "Hello world"
 ```
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+
 ## Contributing
 
-*(Contribution guidelines will be added later)* 
+*(Contribution guidelines will be added later)*
