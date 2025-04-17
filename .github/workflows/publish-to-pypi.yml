@@ -12,7 +12,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # environment: pypi # Optional: uncomment if you create a 'pypi' environment in GitHub settings
+    environment: pypi
 
     steps:
     - uses: actions/checkout@v4
