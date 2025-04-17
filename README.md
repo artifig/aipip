@@ -52,12 +52,11 @@ The platform follows a modular, service-oriented architecture to promote decoupl
 ## Proposed Directory Structure
 
 ```
-llm_app/
-├── config/
+config/
 │   ├── __init__.py
 │   ├── models.py         # Pydantic models for configuration
 │   └── loader.py         # Logic for loading config (env vars, files)
-├── providers/
+providers/
 │   ├── __init__.py
 │   ├── interfaces/       # Abstract base classes for providers
 │   │   ├── __init__.py
@@ -71,22 +70,25 @@ llm_app/
 │   │   ├── anthropic_client.py
 │   │   # └── stability_client.py (Future)
 │   └── registry.py       # Provider Registry/Factory
-├── services/
+services/
 │   ├── __init__.py
 │   ├── completion_service.py # Example service using Text Providers
 │   # └── evaluation_service.py (Future/Refactored)
 │   # └── analysis_service.py   (Future)
-├── utils/
+utils/
 │   ├── __init__.py
 │   └── helpers.py        # General utility functions
-├── cli/
+cli/
 │   ├── __init__.py
 │   └── run_completion.py # Example CLI entry point
 │   # └── run_evaluation.py (Future/Refactored)
-├── tests/
+tests/
 │   # Unit and integration tests mirroring the structure
-├── main.py               # Potential main application runner (e.g., for API)
-└── README.md             # This file
+main.py               # Potential main application runner (e.g., for API)
+README.md             # This file
+LICENSE               # License file
+pyproject.toml        # Build system config (to be added)
+setup.cfg             # Package config (to be added)
 ```
 
 ## Roadmap & Current Status
@@ -139,7 +141,7 @@ export OPENAI_API_KEY="your_key"
 export GOOGLE_API_KEY="your_key"
 # ... other env vars ...
 
-python llm_app/cli/run_completion.py --provider openai --prompt "Hello world"
+python cli/run_completion.py --provider openai --prompt "Hello world"
 ```
 
 ## License
