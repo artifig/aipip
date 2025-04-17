@@ -143,3 +143,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contributing
 
 *(Contribution guidelines will be added later)*
+
+## Releasing to PyPI
+
+This project uses [PyPI's trusted publishing](https://docs.pypi.org/trusted-publishers/) for automated releases.
+
+The release process is triggered automatically by pushing a Git tag that matches the version pattern `v*.*.*` (e.g., `v0.1.0`, `v1.2.3`).
+
+The `.github/workflows/publish-to-pypi.yml` GitHub Actions workflow handles:
+1.  Building the source distribution and wheel.
+2.  Uploading the package to PyPI using the trusted publisher configuration.
+
+No manual API token configuration is required in GitHub secrets.
