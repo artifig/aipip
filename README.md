@@ -52,43 +52,41 @@ The platform follows a modular, service-oriented architecture to promote decoupl
 ## Proposed Directory Structure
 
 ```
-config/
-│   ├── __init__.py
-│   ├── models.py         # Pydantic models for configuration
-│   └── loader.py         # Logic for loading config (env vars, files)
-providers/
-│   ├── __init__.py
-│   ├── interfaces/       # Abstract base classes for providers
-│   │   ├── __init__.py
-│   │   └── text_provider.py
-│   │   # └── image_provider.py (Future)
-│   │   # └── audio_provider.py (Future)
-│   ├── clients/          # Concrete implementations for each provider
-│   │   ├── __init__.py
-│   │   ├── openai_client.py
-│   │   ├── google_client.py
-│   │   ├── anthropic_client.py
-│   │   # └── stability_client.py (Future)
-│   └── registry.py       # Provider Registry/Factory
-services/
-│   ├── __init__.py
-│   ├── completion_service.py # Example service using Text Providers
-│   # └── evaluation_service.py (Future/Refactored)
-│   # └── analysis_service.py   (Future)
-utils/
-│   ├── __init__.py
-│   └── helpers.py        # General utility functions
-cli/
-│   ├── __init__.py
-│   └── run_completion.py # Example CLI entry point
-│   # └── run_evaluation.py (Future/Refactored)
-tests/
-│   # Unit and integration tests mirroring the structure
-main.py               # Potential main application runner (e.g., for API)
-README.md             # This file
-LICENSE               # License file
-pyproject.toml        # Build system config (to be added)
-setup.cfg             # Package config (to be added)
+.
+├── src/
+│   └── aipip/              # Main package source code
+│       ├── __init__.py
+│       ├── config/
+│       │   ├── __init__.py
+│       │   ├── models.py
+│       │   └── loader.py
+│       ├── providers/
+│       │   ├── __init__.py
+│       │   ├── interfaces/
+│       │   │   ├── __init__.py
+│       │   │   └── text_provider.py
+│       │   ├── clients/
+│       │   │   ├── __init__.py
+│       │   │   ├── openai_client.py
+│       │   │   ├── google_client.py
+│       │   │   └── anthropic_client.py
+│       │   └── registry.py
+│       ├── services/
+│       │   ├── __init__.py
+│       │   └── completion_service.py
+│       ├── utils/
+│       │   ├── __init__.py
+│       │   └── helpers.py
+│       └── cli/
+│           ├── __init__.py
+│           └── run_completion.py
+├── tests/
+│   └── ...               # Unit and integration tests
+├── .gitignore
+├── LICENSE
+├── README.md
+├── pyproject.toml        # Build system & project metadata
+└── main.py               # Optional: Example top-level script (if needed)
 ```
 
 ## Roadmap & Current Status
@@ -134,15 +132,9 @@ This README outlines the target architecture. We will migrate functionality from
 
 *(Instructions will be added here once the core components are functional)*
 
-```
-# Example (Placeholder)
-pip install -r requirements.txt
-export OPENAI_API_KEY="your_key"
-export GOOGLE_API_KEY="your_key"
-# ... other env vars ...
-
-python cli/run_completion.py --provider openai --prompt "Hello world"
-```
+# Example assuming installation via pip install .
+# (Specific CLI command might change)
+python -m aipip.cli.run_completion --provider openai --prompt "Hello world"
 
 ## License
 
