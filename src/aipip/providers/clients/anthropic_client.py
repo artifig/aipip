@@ -115,19 +115,32 @@ class AnthropicClient(TextProviderInterface):
              raise ValueError("'max_tokens' is required for Anthropic API.")
 
         try:
-            response = self.client.messages.create(
-                model=model_name,
-                system=system_prompt, # Pass system prompt separately
-                messages=anthropic_messages,
-                temperature=temperature, # Can be None, API defaults apply
-                max_tokens=max_tokens, # Required
-                # Pass other common params if they exist in kwargs
-                top_p=kwargs.pop('top_p', None),
-                top_k=kwargs.pop('top_k', None),
-                stop_sequences=kwargs.pop('stop_sequences', None),
-                # Pass any remaining kwargs
+            # Prepare arguments, adding optional ones only if they are not None
+            api_kwargs: Dict[str, Any] = {
+                "model": model_name,
+                "messages": anthropic_messages,
+                "max_tokens": max_tokens,
+                 # Add remaining kwargs first, allowing specific params below to override if needed
                 **kwargs
-            )
+            }
+            if system_prompt:
+                api_kwargs["system"] = system_prompt
+            if temperature is not None:
+                api_kwargs["temperature"] = temperature
+
+            # Pop known optional args from kwargs if present, otherwise they might be passed twice
+            top_p = kwargs.pop('top_p', None)
+            top_k = kwargs.pop('top_k', None)
+            stop_sequences = kwargs.pop('stop_sequences', None)
+
+            if top_p is not None:
+                 api_kwargs["top_p"] = top_p
+            if top_k is not None:
+                 api_kwargs["top_k"] = top_k
+            if stop_sequences is not None:
+                 api_kwargs["stop_sequences"] = stop_sequences
+
+            response = self.client.messages.create(**api_kwargs)
 
             # Extract text and metadata
             completion_text = ""

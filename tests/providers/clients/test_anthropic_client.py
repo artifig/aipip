@@ -137,13 +137,10 @@ def test_generate_completion_with_messages(MockAnthropicCtor, mock_anthropic_api
     ]
     mock_anthropic_client_instance.messages.create.assert_called_once_with(
         model=test_model,
-        system=None,
         messages=expected_anthropic_messages,
         temperature=test_temp,
         max_tokens=test_max_tokens,
         top_k=50, # Check extra kwarg was passed
-        top_p=None, # Check default/None for others
-        stop_sequences=None
     )
 
     # Assert Response
