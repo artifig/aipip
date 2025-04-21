@@ -104,14 +104,14 @@ This README outlines the target architecture. We will migrate functionality from
 *   [x] **Unit Tests:** Add basic unit tests for config loading, registry, and provider clients (using mocks).
 *   [x] **Integration Tests:** Add basic integration tests (`tests/integration/`) for providers.
 
-**Phase 2: Migrate Existing Functionality & Enhance Core**
+**Phase 2: Build Example Applications & Enhance Core**
 
-*   [ ] Refactor `run_logic_eval.py` logic into an `EvaluationService`.
-*   [ ] Adapt prompt generation (`makeprompt_v1`) and result parsing (`parse_result`) into reusable utilities or part of the `EvaluationService`.
-*   [ ] Refactor `analyze_results.py` logic into an `AnalysisService`.
+*   [ ] **Evaluation Application (`evaluation_app/`):** Design and implement a separate application that uses the `aipip` library to run logic problems against different providers/models, collect results, and potentially perform basic analysis.
+*   [ ] **Token Counting:** Add token counting capabilities to the provider interface and clients (or use external library like `tiktoken`).
 *   [ ] **Tool Calling Support:** Implement basic tool/function calling capabilities in the text provider interface and clients.
-*   [ ] Update CLI entry points (`cli/run_evaluation.py`, `cli/analyze_results.py`).
-*   [ ] Add comprehensive tests for migrated services and tool calling.
+*   [ ] *Refactor:* Adapt prompt generation/result parsing logic into reusable utilities or parts of the `evaluation_app` as needed.
+*   [ ] *Refactor:* Adapt analysis logic into the `evaluation_app` as needed.
+*   [ ] Add comprehensive tests for new core features (token counting, tool calling) and the evaluation application.
 
 **Phase 3: Future Enhancements (Examples)**
 
