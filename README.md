@@ -29,7 +29,7 @@ The platform follows a modular, service-oriented architecture to promote decoupl
     *   Provides a way for other parts of the application (like services) to request and obtain initialized provider instances without needing to know the instantiation details.
 
 5.  **Service Layer (`services/`)**:
-    *   Contains modules with specific business logic (e.g., `CompletionService`, `EvaluationService`, `AnalysisService`).
+    *   Contains modules with specific business logic (e.g., `TextGenerationService`, `EvaluationService`, `AnalysisService`).
     *   Services depend on the Provider Registry to get the necessary provider clients via their interfaces.
     *   Encapsulates workflows and orchestrates calls to providers.
 
@@ -73,13 +73,13 @@ The platform follows a modular, service-oriented architecture to promote decoupl
 │       │   └── registry.py
 │       ├── services/
 │       │   ├── __init__.py
-│       │   └── completion_service.py
+│       │   └── text_generation_service.py
 │       ├── utils/
 │       │   ├── __init__.py
 │       │   └── helpers.py
 │       └── cli/
 │           ├── __init__.py
-│           └── run_completion.py
+│           └── run_text_generation.py
 ├── tests/
 │   └── ...               # Unit and integration tests
 ├── .gitignore
@@ -99,8 +99,8 @@ This README outlines the target architecture. We will migrate functionality from
 *   [ ] **Text Provider Interface:** Define `TextProviderInterface` (`providers/interfaces/text_provider.py`).
 *   [ ] **Provider Implementations:** Refactor `openai_client.py`, `google_client.py`, `anthropic_client.py` into classes implementing the interface (`providers/clients/`). Ensure they accept configuration via `__init__`.
 *   [ ] **Provider Registry:** Implement `ProviderRegistry` (`providers/registry.py`) to instantiate and provide clients.
-*   [ ] **Completion Service:** Create an initial `CompletionService` (`services/completion_service.py`) using the registry and text providers.
-*   [ ] **Basic CLI Entry Point:** Create a simple CLI script (`cli/run_completion.py`) to test the new structure.
+*   [ ] **Text Generation Service:** Create an initial `TextGenerationService` (`services/text_generation_service.py`) using the registry and text providers.
+*   [ ] **Basic CLI Entry Point:** Create a simple CLI script (`cli/run_text_generation.py`) to test the new structure.
 *   [ ] **Unit Tests:** Add basic unit tests for config loading, registry, and provider clients (using mocks).
 
 **Phase 2: Migrate Existing Functionality & Enhance Core**
@@ -135,7 +135,7 @@ This README outlines the target architecture. We will migrate functionality from
 ```bash
 # Example assuming installation via pip install .
 # (Specific CLI command might change)
-python -m aipip.cli.run_completion --provider openai --prompt "Hello world"
+python -m aipip.cli.run_text_generation --provider openai --prompt "Hello world"
 ```
 
 ## Local Development Setup
