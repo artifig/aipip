@@ -93,15 +93,16 @@ The platform follows a modular, service-oriented architecture to promote decoupl
 
 This README outlines the target architecture. We will migrate functionality from the old structure progressively.
 
-**Phase 1: Core Text Generation Setup (In Progress)**
+**Phase 1: Core Text Generation Setup (COMPLETE)**
 
-*   [ ] **Configuration System:** Define Pydantic models (`config/models.py`) and loading mechanism (`config/loader.py`).
-*   [ ] **Text Provider Interface:** Define `TextProviderInterface` (`providers/interfaces/text_provider.py`).
-*   [ ] **Provider Implementations:** Refactor `openai_client.py`, `google_client.py`, `anthropic_client.py` into classes implementing the interface (`providers/clients/`). Ensure they accept configuration via `__init__`.
-*   [ ] **Provider Registry:** Implement `ProviderRegistry` (`providers/registry.py`) to instantiate and provide clients.
-*   [ ] **Text Generation Service:** Create an initial `TextGenerationService` (`services/text_generation_service.py`) using the registry and text providers.
-*   [ ] **Basic CLI Entry Point:** Create a simple CLI script (`cli/run_text_generation.py`) to test the new structure.
-*   [ ] **Unit Tests:** Add basic unit tests for config loading, registry, and provider clients (using mocks).
+*   [x] **Configuration System:** Define Pydantic models (`config/models.py`) and loading mechanism (`config/loader.py`).
+*   [x] **Text Provider Interface:** Define `TextProviderInterface` (`providers/interfaces/text_provider.py`).
+*   [x] **Provider Implementations:** `openai_client.py`, `google_client.py`, `anthropic_client.py` classes implementing the interface.
+*   [x] **Provider Registry:** Implement `ProviderRegistry` (`providers/registry.py`) to instantiate and provide clients.
+*   [x] **Text Generation Service:** Create an initial `TextGenerationService` (`services/text_generation_service.py`) using the registry.
+*   [x] **Basic CLI Entry Point:** Create a simple CLI script (`cli/run_text_generation.py`) to test the structure.
+*   [x] **Unit Tests:** Add basic unit tests for config loading, registry, and provider clients (using mocks).
+*   [x] **Integration Tests:** Add basic integration tests (`tests/integration/`) for providers.
 
 **Phase 2: Migrate Existing Functionality & Enhance Core**
 
@@ -130,13 +131,27 @@ This README outlines the target architecture. We will migrate functionality from
 
 ## Setup & Usage
 
-*(Instructions will be added here once the core components are functional)*
+1.  **Prerequisites:** Python 3.9+
+2.  **Installation:** Follow the [Local Development Setup](#local-development-setup) instructions to install the package editable along with development dependencies (`pip install -e '.[dev]'`).
+3.  **API Keys:** Create a `.env` file in the project root and add your API keys:
+    ```dotenv
+    # .env (ensure this file is in .gitignore)
+    OPENAI_API_KEY="your_openai_key"
+    GOOGLE_API_KEY="your_google_key"
+    ANTHROPIC_API_KEY="your_anthropic_key"
+    ```
+    Alternatively, export these as environment variables.
+4.  **Basic CLI Usage:**
+    ```bash
+    # Example: OpenAI
+    python -m aipip.cli.run_text_generation --provider openai --prompt "Tell me about the Zen of Python"
 
-```bash
-# Example assuming installation via pip install .
-# (Specific CLI command might change)
-python -m aipip.cli.run_text_generation --provider openai --prompt "Hello world"
-```
+    # Example: Google (using messages)
+    python -m aipip.cli.run_text_generation --provider google --messages user "What is AGI?"
+
+    # Example: Anthropic (specifying model and max_tokens)
+    python -m aipip.cli.run_text_generation --provider anthropic --prompt "Haiku about clouds" --model claude-3-haiku-20240307 --max-tokens 30
+    ```
 
 ## Local Development Setup
 
