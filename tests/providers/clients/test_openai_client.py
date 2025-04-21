@@ -25,7 +25,7 @@ def mock_openai_client_instance():
     mock_chat_response.choices = [mock_chat_choice]
     # Configure mock usage object for chat
     mock_chat_usage = MagicMock(prompt_tokens=10, completion_tokens=20, total_tokens=30)
-    mock_chat_usage.dict.return_value = { # Define what .dict() should return
+    mock_chat_usage.model_dump.return_value = { # Define what .model_dump() should return
         'prompt_tokens': 10,
         'completion_tokens': 20,
         'total_tokens': 30

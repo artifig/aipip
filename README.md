@@ -187,6 +187,31 @@ This project uses `pytest` as the testing framework.
 - Focus on testing the core logic, public interfaces, and expected behaviors (including edge cases and error handling) of the package components.
 - Tests can be run using the `pytest` command after setting up the local development environment (see "Local Development Setup" section).
 
+### Running Tests
+
+Tests can be run using `pytest` after setting up the local development environment.
+
+- **Run all tests (Unit & Integration):**
+  ```bash
+  pytest
+  ```
+- **Run only unit tests:** (Faster, no network/API keys needed)
+  ```bash
+  pytest -m "not integration"
+  ```
+- **Run only integration tests:** (Requires network and API keys defined in a `.env` file or as environment variables)
+  ```bash
+  pytest -m integration
+  ```
+
+### Integration Tests (`tests/integration/`)
+
+- Integration tests verify the interaction with live provider APIs.
+- They are marked with the `integration` marker (configured in `pyproject.toml`).
+- **Prerequisites:** Requires valid API keys for the providers being tested. These keys should be stored in a `.env` file in the project root (and this file should be in `.gitignore`) or exported as environment variables (e.g., `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`). The tests load the `.env` file automatically and will skip if the required key for a specific provider test is not found.
+- **Cost & Time:** Be aware that running these tests incurs API costs and takes longer than unit tests.
+- **Purpose:** Verify connectivity, authentication, and basic request/response compatibility with the live APIs.
+
 ## Handling Upstream API Changes
 
 This library relies on the official Python SDKs provided by the respective AI vendors (e.g., `openai`, `google-generativeai`, `anthropic`). Changes to these upstream SDKs or their underlying APIs can impact `aipip`.

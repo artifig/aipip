@@ -1,45 +1,37 @@
 import pytest
+import os
+from unittest.mock import patch
 from pydantic import SecretStr
 
-from aipip.config.models import Settings
+from aipip.config.models import Settings, ProviderKeys
 
-
-def test_settings_load_from_env(monkeypatch):
+@patch.dict(os.environ, {
+    "OPENAI_API_KEY": "sk-openai-12345",
+    "GOOGLE_API_KEY": "google-secret-key",
+    "ANTHROPIC_API_KEY": "anthropic-test-key"
+    }, clear=True)
+def test_settings_load_from_env():
     """Test that Settings model loads provider keys from environment variables."""
-    # Arrange: Set mock environment variables
-    mock_openai_key = "sk-openai-12345"
-    mock_google_key = "google-secret-key"
-    mock_anthropic_key = "anthropic-test-key"
-
-    monkeypatch.setenv('OPENAI_API_KEY', mock_openai_key)
-    monkeypatch.setenv('GOOGLE_API_KEY', mock_google_key)
-    monkeypatch.setenv('ANTHROPIC_API_KEY', mock_anthropic_key)
-
-    # Act: Load the settings
+    # Arrange & Act: Load settings within the patched environment
     settings = Settings()
 
     # Assert: Check if keys are loaded correctly and are SecretStr
     assert isinstance(settings.provider_keys.openai_api_key, SecretStr)
-    assert settings.provider_keys.openai_api_key.get_secret_value() == mock_openai_key
+    assert settings.provider_keys.openai_api_key.get_secret_value() == "sk-openai-12345"
 
     assert isinstance(settings.provider_keys.google_api_key, SecretStr)
-    assert settings.provider_keys.google_api_key.get_secret_value() == mock_google_key
+    assert settings.provider_keys.google_api_key.get_secret_value() == "google-secret-key"
 
     assert isinstance(settings.provider_keys.anthropic_api_key, SecretStr)
-    assert settings.provider_keys.anthropic_api_key.get_secret_value() == mock_anthropic_key
+    assert settings.provider_keys.anthropic_api_key.get_secret_value() == "anthropic-test-key"
 
-
-def test_settings_optional_keys(monkeypatch):
-    """Test that missing optional keys result in None."""
-    # Arrange: Ensure no relevant env vars are set (monkeypatch handles cleanup)
-    # monkeypatch.delenv('OPENAI_API_KEY', raising=False)
-    # monkeypatch.delenv('GOOGLE_API_KEY', raising=False)
-    # monkeypatch.delenv('ANTHROPIC_API_KEY', raising=False)
-    # Note: Explicitly deleting isn't strictly necessary if they aren't set,
-    # but shown here for clarity if needed in other tests.
-
-    # Act: Load the settings
-    settings = Settings()
+@patch.dict(os.environ, {}, clear=True) # Clear all env vars for this test
+def test_settings_optional_keys():
+    """Test that missing optional keys result in None when env is empty."""
+    # Arrange & Act: Load settings, preventing .env file loading
+    # Pass dummy _env_file path to prevent loading default .env
+    provider_keys = ProviderKeys(_env_file='/dev/null') # Or any non-existent path
+    settings = Settings(provider_keys=provider_keys, _env_file='/dev/null')
 
     # Assert: Check that missing keys are None
     assert settings.provider_keys.openai_api_key is None

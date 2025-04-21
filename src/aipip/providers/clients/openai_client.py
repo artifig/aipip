@@ -71,7 +71,7 @@ class OpenAIClient(TextProviderInterface):
             # Extract potential metadata
             metadata = {
                 'finish_reason': response.choices[0].finish_reason,
-                'usage': response.usage.dict() if response.usage else None,
+                'usage': response.usage.model_dump() if response.usage else None,
                 'model': response.model,
                 'id': response.id,
                 'created': response.created,

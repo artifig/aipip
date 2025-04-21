@@ -39,4 +39,10 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
+    "python-dotenv>=1.0.0", # For loading .env in tests
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: mark tests as integration tests (require network access, API keys, and potentially .env file)"
 ] 
