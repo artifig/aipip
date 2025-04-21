@@ -6,6 +6,7 @@ from aipip.config.models import Settings, ProviderKeys
 from aipip.providers.registry import ProviderRegistry, UnknownProviderError, ProviderNotConfiguredError
 from aipip.providers.clients.openai_client import OpenAIClient
 from aipip.providers.clients.google_client import GoogleClient
+from aipip.providers.clients.anthropic_client import AnthropicClient
 
 # --- Fixtures ---
 
@@ -16,7 +17,7 @@ def mock_provider_keys_all(monkeypatch) -> ProviderKeys:
     monkeypatch.setenv("OPENAI_API_KEY", "sk-key")
     monkeypatch.setenv("GOOGLE_API_KEY", "google-key")
     # Add anthropic env var later if needed
-    # monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-key")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-key")
 
     # Now instantiate - BaseSettings will load from the patched env
     keys = ProviderKeys()
@@ -25,6 +26,8 @@ def mock_provider_keys_all(monkeypatch) -> ProviderKeys:
     assert keys.openai_api_key.get_secret_value() == "sk-key"
     assert keys.google_api_key is not None
     assert keys.google_api_key.get_secret_value() == "google-key"
+    assert keys.anthropic_api_key is not None
+    assert keys.anthropic_api_key.get_secret_value() == "anthropic-key"
     return keys
 
 @pytest.fixture
@@ -38,6 +41,7 @@ def mock_provider_keys_openai_only(monkeypatch) -> ProviderKeys:
     keys = ProviderKeys()
     assert keys.openai_api_key is not None
     assert keys.google_api_key is None
+    assert keys.anthropic_api_key is None
     return keys
 
 @pytest.fixture
@@ -92,6 +96,23 @@ def test_get_provider_google_success(MockGoogleClient, mock_provider_keys_all):
     assert provider == mock_instance
     assert registry._instances["google"] == mock_instance # Check caching
 
+@patch('aipip.providers.registry.AnthropicClient') # Patch the actual client class
+def test_get_provider_anthropic_success(MockAnthropicClient, mock_provider_keys_all):
+    """Test getting Anthropic provider successfully when configured."""
+    # Arrange
+    mock_instance = MagicMock(spec=AnthropicClient)
+    MockAnthropicClient.return_value = mock_instance
+    settings = Settings(provider_keys=mock_provider_keys_all) # Create Settings manually
+    registry = ProviderRegistry(settings=settings)
+
+    # Act
+    provider = registry.get_provider("anthropic")
+
+    # Assert
+    MockAnthropicClient.assert_called_once_with(api_key=mock_provider_keys_all.anthropic_api_key)
+    assert provider == mock_instance
+    assert registry._instances["anthropic"] == mock_instance # Check caching
+
 def test_get_provider_uses_cache(mock_provider_keys_all):
     """Test that subsequent calls return the same cached instance."""
     # Arrange
@@ -132,6 +153,17 @@ def test_get_provider_google_not_configured(mock_provider_keys_openai_only):
     with pytest.raises(ProviderNotConfiguredError, match="Google API key not configured"):
         registry.get_provider("google")
     assert "google" not in registry._instances # Should not be cached
+
+def test_get_provider_anthropic_not_configured(mock_provider_keys_openai_only):
+    """Test ProviderNotConfiguredError when Anthropic key is missing."""
+    # Arrange
+    settings = Settings(provider_keys=mock_provider_keys_openai_only)
+    registry = ProviderRegistry(settings=settings)
+
+    # Act & Assert
+    with pytest.raises(ProviderNotConfiguredError, match="Anthropic API key not configured"):
+        registry.get_provider("anthropic")
+    assert "anthropic" not in registry._instances # Should not be cached
 
 def test_get_provider_unknown_name(mock_provider_keys_all):
     """Test UnknownProviderError for an unrecognized provider name."""

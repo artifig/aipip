@@ -6,6 +6,7 @@ from ..config.models import Settings
 from .interfaces.text_provider import TextProviderInterface
 from .clients.openai_client import OpenAIClient
 from .clients.google_client import GoogleClient
+from .clients.anthropic_client import AnthropicClient
 # Import other clients like AnthropicClient later
 
 class ProviderNotConfiguredError(Exception):
@@ -24,6 +25,7 @@ class ProviderRegistry:
         "openai": OpenAIClient,
         "google": GoogleClient,
         # "anthropic": AnthropicClient, # Add later
+        "anthropic": AnthropicClient,
     }
 
     def __init__(self, settings: Settings):
@@ -75,12 +77,11 @@ class ProviderRegistry:
                 if not api_key:
                     raise ProviderNotConfiguredError("Google API key not configured.")
                 instance = GoogleClient(api_key=api_key)
-            # Add elif blocks for other providers like anthropic here
-            # elif provider_name == "anthropic":
-            #     api_key = self._settings.provider_keys.anthropic_api_key
-            #     if not api_key:
-            #         raise ProviderNotConfiguredError("Anthropic API key not configured.")
-            #     instance = AnthropicClient(api_key=api_key)
+            elif provider_name == "anthropic":
+                api_key = self._settings.provider_keys.anthropic_api_key
+                if not api_key:
+                    raise ProviderNotConfiguredError("Anthropic API key not configured.")
+                instance = AnthropicClient(api_key=api_key)
             else:
                 # This case should be caught by the _PROVIDER_MAP check, but acts as a safeguard
                 raise UnknownProviderError(f"Instantiation logic missing for known provider: '{provider_name}'")
