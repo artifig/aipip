@@ -199,9 +199,14 @@ Tests can be run using `pytest` after setting up the local development environme
   ```bash
   pytest -m "not integration"
   ```
-- **Run only integration tests:** (Requires network and API keys defined in a `.env` file or as environment variables)
+- **Run only integration tests:** (Requires network and API keys in `.env` or environment)
   ```bash
   pytest -m integration
+  ```
+- **See output during tests:** To see `print()` statements (like the responses from integration tests), use the `-s` flag:
+  ```bash
+  pytest -s -m integration # Run integration tests and show output
+  pytest -s # Run all tests and show output
   ```
 
 ### Integration Tests (`tests/integration/`)
