@@ -20,7 +20,7 @@ The platform follows a modular, service-oriented architecture to promote decoupl
     *   These interfaces enforce a common set of methods (e.g., `generate_completion`, `generate_image`) that specific provider implementations must adhere to.
 
 3.  **Provider Implementations (`providers/clients/`)**:
-    *   Concrete classes implementing the provider interfaces for specific vendors (e.g., `OpenAIClient`, `GoogleClient`, `AnthropicClient` implementing `TextProviderInterface`).
+    *   Concrete classes implementing the provider interfaces for specific vendors (e.g., `AnthropicClient`, `GoogleClient`, `OpenAIClient` implementing `TextProviderInterface`).
     *   Each client class encapsulates the logic for interacting with a specific provider's SDK/API.
     *   Clients receive their necessary configuration (API key, etc.) via dependency injection during initialization, making them stateless regarding configuration loading.
 
@@ -67,9 +67,9 @@ The platform follows a modular, service-oriented architecture to promote decoupl
 │       │   │   └── text_provider.py
 │       │   ├── clients/
 │       │   │   ├── __init__.py
-│       │   │   ├── openai_client.py
+│       │   │   ├── anthropic_client.py
 │       │   │   ├── google_client.py
-│       │   │   └── anthropic_client.py
+│       │   │   └── openai_client.py
 │       │   └── registry.py
 │       ├── services/
 │       │   ├── __init__.py
@@ -97,7 +97,7 @@ This README outlines the target architecture. We will migrate functionality from
 
 *   [x] **Configuration System:** Define Pydantic models (`config/models.py`) and loading mechanism (`config/loader.py`).
 *   [x] **Text Provider Interface:** Define `TextProviderInterface` (`providers/interfaces/text_provider.py`).
-*   [x] **Provider Implementations:** `openai_client.py`, `google_client.py`, `anthropic_client.py` classes implementing the interface.
+*   [x] **Provider Implementations:** `anthropic_client.py`, `google_client.py`, `openai_client.py` classes implementing the interface.
 *   [x] **Provider Registry:** Implement `ProviderRegistry` (`providers/registry.py`) to instantiate and provide clients.
 *   [x] **Text Generation Service:** Create an initial `TextGenerationService` (`services/text_generation_service.py`) using the registry.
 *   [x] **Basic CLI Entry Point:** Create a simple CLI script (`cli/run_text_generation.py`) to test the structure.
@@ -136,21 +136,24 @@ This README outlines the target architecture. We will migrate functionality from
 3.  **API Keys:** Create a `.env` file in the project root and add your API keys:
     ```dotenv
     # .env (ensure this file is in .gitignore)
-    OPENAI_API_KEY="your_openai_key"
-    GOOGLE_API_KEY="your_google_key"
     ANTHROPIC_API_KEY="your_anthropic_key"
+    GOOGLE_API_KEY="your_google_key"
+    OPENAI_API_KEY="your_openai_key"
     ```
     Alternatively, export these as environment variables.
 4.  **Basic CLI Usage:**
     ```bash
-    # Example: OpenAI
-    python -m aipip.cli.run_text_generation --provider openai --prompt "Tell me about the Zen of Python"
+    # Example: Anthropic (using --prompt, requires max_tokens)
+    python -m aipip.cli.run_text_generation --provider anthropic --prompt "Haiku about clouds" --model claude-3-haiku-20240307 --max-tokens 30
 
-    # Example: Google (using messages)
+    # Example: Google (using --messages)
     python -m aipip.cli.run_text_generation --provider google --messages user "What is AGI?"
 
-    # Example: Anthropic (specifying model and max_tokens)
-    python -m aipip.cli.run_text_generation --provider anthropic --prompt "Haiku about clouds" --model claude-3-haiku-20240307 --max-tokens 30
+    # Example: OpenAI (using --prompt and --temperature)
+    python -m aipip.cli.run_text_generation --provider openai --prompt "Tell me about the Zen of Python" --temperature 0.8
+
+    # Example: OpenAI (using --messages)
+    python -m aipip.cli.run_text_generation --provider openai --messages user "What is the capital of France?" assistant "Paris" user "Is it sunny there?"
     ```
 
 ## Local Development Setup
@@ -228,19 +231,19 @@ Tests can be run using `pytest` after setting up the local development environme
 
 - Integration tests verify the interaction with live provider APIs.
 - They are marked with the `integration` marker (configured in `pyproject.toml`).
-- **Prerequisites:** Requires valid API keys for the providers being tested. These keys should be stored in a `.env` file in the project root (and this file should be in `.gitignore`) or exported as environment variables (e.g., `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`). The tests load the `.env` file automatically and will skip if the required key for a specific provider test is not found.
+- **Prerequisites:** Requires valid API keys for the providers being tested. These keys should be stored in a `.env` file in the project root (and this file should be in `.gitignore`) or exported as environment variables (e.g., `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OPENAI_API_KEY`). The tests load the `.env` file automatically and will skip if the required key for a specific provider test is not found.
 - **Cost & Time:** Be aware that running these tests incurs API costs and takes longer than unit tests.
 - **Purpose:** Verify connectivity, authentication, and basic request/response compatibility with the live APIs.
 
 ## Handling Upstream API Changes
 
-This library relies on the official Python SDKs provided by the respective AI vendors (e.g., `openai`, `google-generativeai`, `anthropic`). Changes to these upstream SDKs or their underlying APIs can impact `aipip`.
+This library relies on the official Python SDKs provided by the respective AI vendors (e.g., `anthropic`, `google-generativeai`, `openai`). Changes to these upstream SDKs or their underlying APIs can impact `aipip`.
 
 **Strategy:**
 
 1.  **Dependency Management:** We specify version ranges for provider SDKs in `pyproject.toml` (e.g., `openai>=1.0,<2.0`) to prevent automatically pulling in potentially breaking major version updates. Minor/patch updates from providers will be tested before updating the lower bound.
 2.  **Interface Stability:** The core `TextProviderInterface` aims for stability. Common parameters are defined explicitly. Provider-specific parameters are handled via `**kwargs` passed directly to the client implementation, allowing flexibility without constant interface changes.
-3.  **Client Implementation Responsibility:** Each concrete client class (e.g., `OpenAIClient`) is responsible for adapting to changes in its specific upstream SDK. This involves updating:
+3.  **Client Implementation Responsibility:** Each concrete client class (e.g., `AnthropicClient`, `GoogleClient`, `OpenAIClient`) is responsible for adapting to changes in its specific upstream SDK. This involves updating:
     *   Parameter mapping (from interface calls to SDK calls).
     *   Method calls to the SDK.
     *   Response parsing.

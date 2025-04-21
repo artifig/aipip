@@ -6,9 +6,10 @@ from typing import Optional
 class ProviderKeys(BaseSettings):
     """API Keys for various AI providers, loaded from environment variables."""
     # Use SecretStr to prevent accidental logging of keys
-    openai_api_key: Optional[SecretStr] = Field(None, alias='OPENAI_API_KEY')
-    google_api_key: Optional[SecretStr] = Field(None, alias='GOOGLE_API_KEY')
+    # Order: Anthropic, Google, OpenAI
     anthropic_api_key: Optional[SecretStr] = Field(None, alias='ANTHROPIC_API_KEY')
+    google_api_key: Optional[SecretStr] = Field(None, alias='GOOGLE_API_KEY')
+    openai_api_key: Optional[SecretStr] = Field(None, alias='OPENAI_API_KEY')
 
     # Use model_config with SettingsConfigDict for Pydantic V2/pydantic-settings
     model_config = SettingsConfigDict(

@@ -21,11 +21,11 @@ class ProviderRegistry:
     """Manages the instantiation and retrieval of provider clients."""
 
     # Map provider names (strings) to their corresponding client classes
+    # Order: Anthropic, Google, OpenAI
     _PROVIDER_MAP: Dict[str, Type[TextProviderInterface]] = {
-        "openai": OpenAIClient,
-        "google": GoogleClient,
-        # "anthropic": AnthropicClient, # Add later
         "anthropic": AnthropicClient,
+        "google": GoogleClient,
+        "openai": OpenAIClient,
     }
 
     def __init__(self, settings: Settings):
@@ -66,22 +66,23 @@ class ProviderRegistry:
             raise UnknownProviderError(f"Unknown provider: '{provider_name}'. Known providers: {list(self._PROVIDER_MAP.keys())}")
 
         # Check configuration and instantiate
+        # Order: Anthropic, Google, OpenAI
         try:
-            if provider_name == "openai":
-                api_key = self._settings.provider_keys.openai_api_key
+            if provider_name == "anthropic":
+                api_key = self._settings.provider_keys.anthropic_api_key
                 if not api_key:
-                    raise ProviderNotConfiguredError("OpenAI API key not configured.")
-                instance = OpenAIClient(api_key=api_key)
+                    raise ProviderNotConfiguredError("Anthropic API key not configured.")
+                instance = AnthropicClient(api_key=api_key)
             elif provider_name == "google":
                 api_key = self._settings.provider_keys.google_api_key
                 if not api_key:
                     raise ProviderNotConfiguredError("Google API key not configured.")
                 instance = GoogleClient(api_key=api_key)
-            elif provider_name == "anthropic":
-                api_key = self._settings.provider_keys.anthropic_api_key
+            elif provider_name == "openai":
+                api_key = self._settings.provider_keys.openai_api_key
                 if not api_key:
-                    raise ProviderNotConfiguredError("Anthropic API key not configured.")
-                instance = AnthropicClient(api_key=api_key)
+                    raise ProviderNotConfiguredError("OpenAI API key not configured.")
+                instance = OpenAIClient(api_key=api_key)
             else:
                 # This case should be caught by the _PROVIDER_MAP check, but acts as a safeguard
                 raise UnknownProviderError(f"Instantiation logic missing for known provider: '{provider_name}'")
