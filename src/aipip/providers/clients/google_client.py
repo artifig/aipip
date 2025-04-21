@@ -151,7 +151,9 @@ class GoogleClient(TextProviderInterface):
             metadata = {
                 'finish_reason': finish_reason,
                 'safety_ratings': safety_ratings,
-                'prompt_feedback': response.prompt_feedback.to_dict() if hasattr(response, 'prompt_feedback') else None,
+                # Extract prompt_feedback attributes directly if needed, avoid to_dict()
+                'prompt_feedback_block_reason': response.prompt_feedback.block_reason.name if hasattr(response, 'prompt_feedback') and hasattr(response.prompt_feedback.block_reason, 'name') else None,
+                # 'prompt_feedback_safety_ratings': [r.to_dict() for r in response.prompt_feedback.safety_ratings] if hasattr(response, 'prompt_feedback') and hasattr(response.prompt_feedback, 'safety_ratings') else None,
                 # 'usage': usage_metadata, # Usage metadata not typically available here
                 'model': model_name,
             }

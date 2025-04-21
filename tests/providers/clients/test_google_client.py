@@ -38,7 +38,6 @@ def mock_google_model_instance():
     mock_response.prompt_feedback = MagicMock()
     # Initialize block_reason to None in the fixture
     mock_response.prompt_feedback.block_reason = None
-    mock_response.prompt_feedback.to_dict.return_value = {'block_reason': None}
 
     mock_model.generate_content.return_value = mock_response
     return mock_model
@@ -262,10 +261,11 @@ def test_generate_completion_handles_blocked_prompt(MockGenerativeModelCtor, moc
     mock_response = mock_google_model_instance.generate_content.return_value
     mock_response.parts = [] # No parts returned
     mock_response.text = ""
-    # Set the block_reason value directly (as a string if necessary)
-    mock_response.prompt_feedback.block_reason = "SAFETY" # Use string directly
-    # Update the mock to_dict for this test case
-    mock_response.prompt_feedback.to_dict.return_value = {'block_reason': 'SAFETY'}
+    # Set the block_reason to a mock object that has a .name attribute
+    mock_block_reason = MagicMock()
+    mock_block_reason.name = "SAFETY"
+    mock_response.prompt_feedback.block_reason = mock_block_reason
+    # mock_response.prompt_feedback.to_dict.return_value = {'block_reason': 'SAFETY'} # Removed
     mock_response.candidates = [] # No candidates when blocked usually
 
     client = GoogleClient(api_key=mock_google_api_key)
@@ -275,6 +275,7 @@ def test_generate_completion_handles_blocked_prompt(MockGenerativeModelCtor, moc
 
     # Assert
     assert response.text == "" # Should be empty string
-    assert response.metadata['prompt_feedback']['block_reason'] == 'SAFETY'
+    # Assert against the value we store in metadata
+    assert response.metadata['prompt_feedback_block_reason'] == "SAFETY"
     assert response.metadata['finish_reason'] is None # No candidate to get reason from
     assert response.metadata['safety_ratings'] is None 
