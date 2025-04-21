@@ -29,13 +29,13 @@ The platform follows a modular, service-oriented architecture to promote decoupl
     *   Provides a way for other parts of the application (like services) to request and obtain initialized provider instances without needing to know the instantiation details.
 
 5.  **Service Layer (`services/`)**:
-    *   Contains modules with specific business logic (e.g., `TextGenerationService`, `EvaluationService`, `AnalysisService`).
+    *   Contains modules with specific business logic (e.g., `TextGenerationService`).
     *   Services depend on the Provider Registry to get the necessary provider clients via their interfaces.
-    *   Encapsulates workflows and orchestrates calls to providers.
+    *   Encapsulates workflows and orchestrates calls to providers. Services like `TextGenerationService` may offer methods for single calls (`generate`) or batch/comparative calls (`generate_batch`).
 
-6.  **Application Entry Points (`cli/`, `api/`)**:
-    *   Entry points for interacting with the application (e.g., Command-Line Interface scripts, a future Web API/UI).
-    *   These components initialize the configuration, the provider registry, and the required services, then invoke service methods.
+6.  **Application Entry Points (`cli/`, `api/`, or separate apps)**:
+    *   Entry points for interacting with the `aipip` library (e.g., the example `aipip.cli.run_text_generation` script).
+    *   Separate applications (like the planned `evaluation_app`) can be built on top of the `aipip` library by importing its services.
 
 7.  **Utilities (`utils/`)**:
     *   Shared helper functions and classes used across different parts of the application.
@@ -73,14 +73,20 @@ The platform follows a modular, service-oriented architecture to promote decoupl
 │       │   └── registry.py
 │       ├── services/
 │       │   ├── __init__.py
-│       │   └── text_generation_service.py
+│       │   └── text_generation_service.py # Provides core generation logic
 │       ├── utils/
 │       │   ├── __init__.py
 │       │   └── helpers.py
 │       └── cli/
 │           ├── __init__.py
-│           └── run_text_generation.py
+│           └── run_text_generation.py # Example CLI using the service
+├── evaluation_app/         # Example application using the aipip library
+│   ├── __init__.py
+│   ├── run_evaluation.py
+│   └── ...               # App-specific logic, prompts, etc.
 ├── tests/
+│   ├── integration/
+│   ├── providers/
 │   └── ...               # Unit and integration tests
 ├── .gitignore
 ├── LICENSE
@@ -104,24 +110,25 @@ This README outlines the target architecture. We will migrate functionality from
 *   [x] **Unit Tests:** Add basic unit tests for config loading, registry, and provider clients (using mocks).
 *   [x] **Integration Tests:** Add basic integration tests (`tests/integration/`) for providers.
 
-**Phase 2: Build Example Applications & Enhance Core**
+**Phase 2: Enhance Core & Build Example Applications**
 
-*   [ ] **Evaluation Application (`evaluation_app/`):** Design and implement a separate application that uses the `aipip` library to run logic problems against different providers/models, collect results, and potentially perform basic analysis.
-*   [ ] **Token Counting:** Add token counting capabilities to the provider interface and clients (or use external library like `tiktoken`).
-*   [ ] **Tool Calling Support:** Implement basic tool/function calling capabilities in the text provider interface and clients.
-*   [ ] *Refactor:* Adapt prompt generation/result parsing logic into reusable utilities or parts of the `evaluation_app` as needed.
-*   [ ] *Refactor:* Adapt analysis logic into the `evaluation_app` as needed.
-*   [ ] Add comprehensive tests for new core features (token counting, tool calling) and the evaluation application.
+*   [ ] **Evaluation Application (`evaluation_app/`):** Design and implement a separate application using `aipip` (and potentially `generate_batch`) to run logic problems against different providers/models, collect results, and potentially perform basic analysis.
+*   [ ] **Token Counting:** Add token counting capabilities to the provider interface and clients (or use external library like `tiktoken`), potentially exposing it via the service layer.
+*   [ ] **Batch Generation:** Enhance `TextGenerationService` with a `generate_batch` method to run the same input against multiple models/configurations for a provider.
+*   [ ] **Tool Calling Support:** Implement basic tool/function calling capabilities in the text provider interface and clients, and update the `TextGenerationService` to handle them.
+*   [ ] *Refactor:* Adapt prompt generation/result parsing logic into reusable utilities (`aipip/utils/`) or parts of the `evaluation_app` as needed.
+*   [ ] Add comprehensive tests for new core features and the evaluation application.
 
-**Phase 3: Future Enhancements (Examples)**
+**Phase 3: Future Enhancements & Applications (Examples)**
 
+*   [ ] **Logic Solution Analysis Application:** A separate app using `aipip` to analyze/compare the quality of solutions generated for logic problems.
+*   [ ] **Problem Generation Service/Application:** Using `aipip` to generate new logic problems or other evaluation data.
 *   [ ] Image Generation Provider Interface & Implementations
 *   [ ] Audio Processing Provider Interface & Implementations
 *   [ ] Streaming Support in Providers & Services
 *   [ ] Advanced Error Handling, Retries, and Rate Limiting
 *   [ ] **Adapting to Evolving Standards:** Monitor and adapt provider clients and interfaces to support emerging standards for structured context communication (e.g., Anthropic's Model Context Protocol - MCP) as they gain adoption.
 *   [ ] Asynchronous Provider Implementations (`asyncio`)
-*   [ ] Problem Generation Service
 *   [ ] Web API (e.g., using FastAPI)
 *   [ ] User Interface
 *   [ ] Deployment Setup (Docker, CI/CD)
