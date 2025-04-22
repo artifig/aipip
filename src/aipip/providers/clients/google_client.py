@@ -49,7 +49,7 @@ class GoogleClient(TextProviderInterface):
         messages: Optional[List[Dict[str, str]]] = None,
         model: Optional[str] = None,
         temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        max_tokens: Optional[int] = 1000,
         # Google specific parameters often passed via kwargs:
         # top_p: Optional[float] = None,
         # top_k: Optional[int] = None,

@@ -35,7 +35,7 @@ class OpenAIClient(TextProviderInterface):
         messages: Optional[List[Dict[str, str]]] = None,
         model: Optional[str] = None,
         temperature: Optional[float] = 0.7, # Default temperature
-        max_tokens: Optional[int] = 150, # Default max tokens
+        max_tokens: Optional[int] = 1000, # Changed default from 150 to 1000
         **kwargs: Any
     ) -> CompletionResponse:
         """Generates text completion using the OpenAI chat completions API."""

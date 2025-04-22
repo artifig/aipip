@@ -71,7 +71,7 @@ class AnthropicClient(TextProviderInterface):
         messages: Optional[List[Dict[str, str]]] = None,
         model: Optional[str] = None,
         temperature: Optional[float] = None, # Anthropic calls it temperature
-        max_tokens: Optional[int] = 1024, # Anthropic uses max_tokens
+        max_tokens: Optional[int] = 1000, # Default if not None
         # Anthropic specific parameters often passed via kwargs:
         # system: Optional[str] = None,
         # top_p: Optional[float] = None,
@@ -110,23 +110,28 @@ class AnthropicClient(TextProviderInterface):
         else:
              raise ValueError("Neither prompt nor messages were provided after processing.")
 
-        # Anthropic requires max_tokens
-        if max_tokens is None:
-             raise ValueError("'max_tokens' is required for Anthropic API.")
+        # Ensure defaults are applied if None is passed explicitly
+        final_temperature = temperature if temperature is not None else 0.7 # Example default, match OpenAI?
+        final_max_tokens = max_tokens if max_tokens is not None else 1000 # Use 1000 default
+
+        # Check required Anthropic param AFTER applying default
+        if final_max_tokens is None:
+             raise ValueError("'max_tokens' is required for Anthropic API and no default could be applied.")
 
         try:
-            # Prepare arguments, adding optional ones only if they are not None
+            # Prepare arguments, using the final values
             api_kwargs: Dict[str, Any] = {
                 "model": model_name,
                 "messages": anthropic_messages,
-                "max_tokens": max_tokens,
+                "max_tokens": final_max_tokens,
                  # Add remaining kwargs first, allowing specific params below to override if needed
                 **kwargs
             }
             if system_prompt:
                 api_kwargs["system"] = system_prompt
-            if temperature is not None:
-                api_kwargs["temperature"] = temperature
+            # Use final_temperature, only add if it has a value
+            if final_temperature is not None:
+                api_kwargs["temperature"] = final_temperature
 
             # Pop known optional args from kwargs if present, otherwise they might be passed twice
             top_p = kwargs.pop('top_p', None)
