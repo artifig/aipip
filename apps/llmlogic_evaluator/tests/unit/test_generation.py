@@ -173,4 +173,63 @@ def test_solve_prop_horn_already_satisfied_rule():
     """Test Horn solver: Rule is satisfied by initial units, no new derivation."""
     clauses = [[1], [-1, 2], [2]] # A, -A v B, B
     result = solve_prop_horn_problem(clauses)
-    assert sorted(result) == [1, 2] # Should not derive B again 
+    assert sorted(result) == [1, 2] # Should not derive B again
+
+
+# ==========================================
+# Test cases for Helper Functions
+# ==========================================
+
+from apps.llmlogic_evaluator.generation import (
+    normalize_problem,
+    is_tautology,
+    is_tautology_set,
+    is_horn
+)
+
+def test_normalize_problem_sorting_and_deduplication():
+    """Test normalize_problem sorts clauses and literals, removes duplicates."""
+    problem = [[2, 1], [-1], [1, 2], [-3, -2]]
+    expected = [[-1], [-3, -2], [1, 2]] # Sorted by length, then literals; duplicates removed
+    normalized = normalize_problem(problem)
+    assert normalized == expected
+
+def test_normalize_problem_empty():
+    """Test normalize_problem with empty input."""
+    assert normalize_problem([]) == []
+
+def test_is_tautology_simple_true():
+    """Test is_tautology for a simple tautology (A or -A)."""
+    assert is_tautology([1, -1]) is True
+
+def test_is_tautology_simple_false():
+    """Test is_tautology for a non-tautological clause."""
+    assert is_tautology([1, 2]) is False
+    assert is_tautology([-1, -2]) is False
+    assert is_tautology([1]) is False
+
+def test_is_tautology_empty():
+    """Test is_tautology for an empty clause."""
+    assert is_tautology([]) is False
+
+# is_tautology_set works on sets/frozensets, used by solver
+def test_is_tautology_set_true():
+    """Test is_tautology_set for a simple tautology."""
+    assert is_tautology_set(frozenset({1, -1})) is True
+
+def test_is_tautology_set_false():
+    """Test is_tautology_set for a non-tautological clause."""
+    assert is_tautology_set(frozenset({1, 2})) is False
+    assert is_tautology_set(frozenset({-1})) is False
+
+def test_is_horn_true():
+    """Test is_horn for valid Horn clauses."""
+    assert is_horn([-1, -2, 3]) is True  # Rule
+    assert is_horn([-1, -2]) is True     # Goal/Constraint
+    assert is_horn([1]) is True          # Fact
+    assert is_horn([]) is True           # Empty clause is Horn
+
+def test_is_horn_false():
+    """Test is_horn for non-Horn clauses (more than one positive literal)."""
+    assert is_horn([1, 2]) is False
+    assert is_horn([-1, 2, 3]) is False 
