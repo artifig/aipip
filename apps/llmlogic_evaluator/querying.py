@@ -89,10 +89,11 @@ def parse_llm_response(response_text: str) -> int:
         return 2 # UNKNOWN
     else:
         # Check if keywords appear elsewhere (more robust but might misinterpret)
-        if "unsatisfiable" in processed_text or "contradiction" in processed_text:
-            return 0
+        # Swap order: Check for SAT first, then UNSAT/Contradiction
         if "satisfiable" in processed_text:
             return 1
+        if "unsatisfiable" in processed_text or "contradiction" in processed_text:
+            return 0
         # If none of the keywords are found clearly
         return 2 # UNKNOWN
 
