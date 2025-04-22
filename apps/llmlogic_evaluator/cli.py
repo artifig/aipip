@@ -7,6 +7,11 @@ from .generation import run_generation
 from .querying import run_querying
 from .analysis import run_analysis
 
+# Import aipip components
+from aipip.config.loader import load_config
+from aipip.providers.registry import ProviderRegistry
+from aipip.services.text_generation_service import TextGenerationService
+
 def main():
     parser = argparse.ArgumentParser(description="LLMLogicEvaluator: Evaluate LLMs on propositional logic.")
     subparsers = parser.add_subparsers(dest='command', help='Sub-command help', required=True)

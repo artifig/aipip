@@ -2,7 +2,7 @@
 
 from typing import Dict, Optional, Type
 
-from ..config.models import Settings
+from ..config.models import AppConfig
 from .interfaces.text_provider import TextProviderInterface
 from .clients.openai_client import OpenAIClient
 from .clients.google_client import GoogleClient
@@ -28,13 +28,13 @@ class ProviderRegistry:
         "openai": OpenAIClient,
     }
 
-    def __init__(self, settings: Settings):
-        """Initializes the registry with application settings.
+    def __init__(self, config: AppConfig):
+        """Initializes the registry with application configuration.
 
         Args:
-            settings: The loaded application settings containing API keys.
+            config: The loaded application configuration containing API keys.
         """
-        self._settings = settings
+        self.config = config
         self._instances: Dict[str, TextProviderInterface] = {}
 
     def get_provider(self, provider_name: str) -> TextProviderInterface:
@@ -69,17 +69,17 @@ class ProviderRegistry:
         # Order: Anthropic, Google, OpenAI
         try:
             if provider_name == "anthropic":
-                api_key = self._settings.provider_keys.anthropic_api_key
+                api_key = self.config.provider_keys.anthropic_api_key
                 if not api_key:
                     raise ProviderNotConfiguredError("Anthropic API key not configured.")
                 instance = AnthropicClient(api_key=api_key)
             elif provider_name == "google":
-                api_key = self._settings.provider_keys.google_api_key
+                api_key = self.config.provider_keys.google_api_key
                 if not api_key:
                     raise ProviderNotConfiguredError("Google API key not configured.")
                 instance = GoogleClient(api_key=api_key)
             elif provider_name == "openai":
-                api_key = self._settings.provider_keys.openai_api_key
+                api_key = self.config.provider_keys.openai_api_key
                 if not api_key:
                     raise ProviderNotConfiguredError("OpenAI API key not configured.")
                 instance = OpenAIClient(api_key=api_key)

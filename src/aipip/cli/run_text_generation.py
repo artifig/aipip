@@ -3,15 +3,16 @@ import json
 import sys
 from typing import Dict, List, Optional
 
-# Load .env file if present, BEFORE importing local modules that use settings
+# Load .env file if present, BEFORE importing local modules that use config
 # This allows placing a .env file in the project root for local development
 # without needing to export environment variables.
 from dotenv import load_dotenv
 load_dotenv()
 
-from aipip.config.loader import load_settings
+from aipip.config.loader import load_config
 from aipip.providers.registry import ProviderRegistry
 from aipip.services.text_generation_service import TextGenerationService
+from aipip.config.models import AppConfig
 
 
 def parse_messages(message_args: List[str]) -> Optional[List[Dict[str, str]]]:
@@ -43,11 +44,12 @@ def main():
     args = parser.parse_args()
 
     try:
-        # Load settings (reads from environment / .env)
-        settings = load_settings()
+        # Load configuration
+        # Uses pydantic-settings to load from .env, environment variables, etc.
+        config = load_config()
 
-        # Initialize registry and service
-        registry = ProviderRegistry(settings=settings)
+        # Initialize Provider Registry
+        registry = ProviderRegistry(config=config)
         service = TextGenerationService(registry=registry)
 
         # Parse messages if provided

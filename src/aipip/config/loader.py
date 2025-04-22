@@ -1,12 +1,12 @@
 # Logic for loading configuration will go here
 from functools import lru_cache
-from .models import Settings
+from .models import AppConfig
 
 @lru_cache()
-def load_settings() -> Settings:
-    """Loads the application settings using pydantic-settings.
+def load_config() -> AppConfig:
+    """Loads the application config using pydantic-settings.
 
-    Uses lru_cache to ensure settings are loaded only once.
+    Uses lru_cache to ensure config is loaded only once.
     """
     # Pydantic-settings handles loading from .env and environment variables automatically
-    return Settings() 
+    return AppConfig() 

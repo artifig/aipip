@@ -18,8 +18,8 @@ class ProviderKeys(BaseSettings):
         extra='ignore' # Ignore extra environment variables
     )
 
-class Settings(BaseSettings):
-    """Main application settings."""
+class AppConfig(BaseSettings):
+    """Main application configuration."""
     provider_keys: ProviderKeys = Field(default_factory=ProviderKeys)
 
     # Add other general application settings here later if needed
