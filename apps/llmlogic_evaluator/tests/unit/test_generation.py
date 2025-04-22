@@ -301,4 +301,55 @@ def test_make_prop_problem_includes_pos_neg_clauses():
 def test_make_prop_problem_varnr_edge_case():
     """Test make_prop_problem returns empty list if varnr < 2."""
     assert make_prop_problem(1, 3, 4.0, False) == []
-    assert make_prop_problem(0, 3, 4.0, False) == [] 
+    assert make_prop_problem(0, 3, 4.0, False) == []
+
+
+# ==========================================
+# Test cases for makeproof
+# ==========================================
+
+from apps.llmlogic_evaluator.generation import makeproof
+
+def test_makeproof_simple_unsat():
+    """Test makeproof reconstruction for a simple UNSAT case: (A) & (-A)."""
+    # Simulate the output of solve_prop_problem for [[1], [-1]]
+    # 1. allcls dictionary populated during the solve run
+    allcls_from_run = {
+        1: [1, None, frozenset({1})],    # Input clause 1
+        2: [2, None, frozenset({-1})],   # Input clause 2
+        3: [3, [1, 2], frozenset()]     # Derived empty clause from 1 and 2
+    }
+    # 2. The final contradiction clause returned by solve_prop_problem
+    resolve_res = [3, [1, 2], frozenset()]
+
+    # Expected proof structure after renumbering and sorting
+    expected_proof = [
+        [1, [], [1]],   # Renumbered clause 1
+        [2, [], [-1]],  # Renumbered clause 2
+        [3, [1, 2], []] # Renumbered clause 3 (empty clause)
+    ]
+
+    actual_proof = makeproof(resolve_res, allcls_from_run)
+
+    assert actual_proof == expected_proof
+
+def test_makeproof_no_proof():
+    """Test makeproof returns empty list if solver didn't find contradiction."""
+    # Simulate solver returning None (satisfiable)
+    resolve_res_none = None
+    allcls_from_run = {
+        1: [1, None, frozenset({1})]
+    }
+    assert makeproof(resolve_res_none, allcls_from_run) == []
+
+    # Simulate solver returning a non-empty clause (should not happen for UNSAT)
+    resolve_res_non_empty = [1, None, frozenset({1})]
+    assert makeproof(resolve_res_non_empty, allcls_from_run) == []
+
+# Add a slightly more complex case later if needed
+# def test_makeproof_complex_unsat():
+#     # Simulate allcls and resolve_res for [[1, 2], [-1], [-2]]
+#     # ... define allcls_from_run and resolve_res ...
+#     # ... define expected_proof ...
+#     actual_proof = makeproof(resolve_res, allcls_from_run)
+#     assert actual_proof == expected_proof 
