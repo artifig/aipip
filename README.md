@@ -150,7 +150,7 @@ See the README within `apps/llmlogic_evaluator/` for instructions specific to th
     OPENAI_API_KEY="your_openai_key"
     ```
     Alternatively, export these as environment variables.
-4.  **Basic CLI Usage:**
+4.  **Basic CLI Usage (Core Library Example):**
     ```bash
     # Example: Anthropic (using --prompt, requires max_tokens)
     python -m aipip.cli.run_text_generation --provider anthropic --prompt "Haiku about clouds" --model claude-3-haiku-20240307 --max-tokens 30
@@ -164,6 +164,20 @@ See the README within `apps/llmlogic_evaluator/` for instructions specific to th
     # Example: OpenAI (using --messages)
     python -m aipip.cli.run_text_generation --provider openai --messages user "What is the capital of France?" assistant "Paris" user "Is it sunny there?"
     ```
+
+## Example Application: LLMLogicEvaluator
+
+This repository includes an example application demonstrating how to use the `aipip` library for a specific task: evaluating LLM performance on logic problems.
+
+See the application's dedicated README for detailed instructions:
+[`apps/llmlogic_evaluator/README.md`](apps/llmlogic_evaluator/README.md)
+
+To run the evaluator's commands (generate problems, query models, analyze results), use:
+```bash
+python -m apps.llmlogic_evaluator <command> [options]
+# Example: Generate problems
+python -m apps.llmlogic_evaluator generate
+```
 
 ## Local Development Setup
 

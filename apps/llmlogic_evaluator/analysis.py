@@ -27,9 +27,9 @@ def run_analysis(input_file: str, report_file: str, **kwargs):
     print(f"Analyzing results from {input_file}...")
 
     # Initialize statistics counters
-    # For detailed report (problem type -> model -> stats)
+    # 1. For detailed report (problem type -> model -> stats)
     model_grouped_stats: ModelGroupedStats = defaultdict(lambda: defaultdict(lambda: Counter()))
-    # For provider/model summary report
+    # 2. For provider/model summary report
     provider_model_summary: Dict[str, Dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
     # Counter keys: 'total', 'correct', 'sat_correct', 'unsat_correct', 'unknown'
 

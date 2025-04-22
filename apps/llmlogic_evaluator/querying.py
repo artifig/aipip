@@ -59,6 +59,10 @@ def format_prompt_v1(problem_data: Dict[str, Any]) -> str:
 def parse_llm_response(response_text: str) -> int:
     """Parses the LLM text response to extract a claim.
 
+    Attempts to find keywords like 'satisfiable' or 'contradiction'.
+    Prioritizes keywords found near the end of the response.
+    If ambiguous (both found) or keywords are absent, returns Unknown.
+
     Returns:
         0: If response indicates UNSAT/contradiction.
         1: If response indicates SAT/satisfiable.
@@ -76,20 +80,17 @@ def parse_llm_response(response_text: str) -> int:
     if not words:
         return 2 # Unknown if only whitespace/punctuation
 
+    # Check last word first for clearest signal
     last_word = words[-1]
-
     if last_word in ["contradiction", "contradictory", "false", "wrong", "unsatisfiable"]:
         return 0 # UNSAT
     elif last_word in ["satisfiable", "true", "satisfied", "sat"]:
         return 1 # SAT
     elif last_word in ["unknown", "uncertain"]:
-        # Treat uncertain as SAT based on original script logic?
-        # Let's keep it as unknown for clarity for now.
-        # return 1
         return 2 # UNKNOWN
     else:
-        # Check if keywords appear elsewhere (more robust but might misinterpret)
-        # Swap order: Check for SAT first, then UNSAT/Contradiction
+        # Fallback: Check if keywords appear anywhere, prioritizing SAT if both found
+        # This handles cases where the final word might be truncated or different.
         if "satisfiable" in processed_text:
             return 1
         if "unsatisfiable" in processed_text or "contradiction" in processed_text:

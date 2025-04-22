@@ -15,6 +15,17 @@ from aipip.services.text_generation_service import TextGenerationService
 
 # Helper function to infer provider from model name (simple version)
 def infer_provider(model_name: str) -> str:
+    """Infers the provider name based on common model name prefixes.
+
+    Args:
+        model_name: The name of the model.
+
+    Returns:
+        The inferred provider name (lowercase).
+
+    Raises:
+        ValueError: If the provider cannot be inferred from the name.
+    """
     model_lower = model_name.lower()
     if model_lower.startswith('claude-'):
         return "anthropic"
