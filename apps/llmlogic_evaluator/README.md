@@ -75,4 +75,38 @@ This application relies heavily on the `aipip` library for:
 
 *   Loading API key configuration (`aipip.config`).
 *   Instantiating provider clients via the registry (`aipip.providers.registry`).
-*   Generating text completions using a unified interface (`aipip.services.TextGenerationService`). 
+*   Generating text completions using a unified interface (`aipip.services.TextGenerationService`).
+
+## Testing Strategy
+
+While the core `aipip` library has its own tests, applications built on top of it, like `llmlogic_evaluator`, require their own testing strategy focused on the application-specific logic and workflow.
+
+Tests for this application should reside within the `apps/llmlogic_evaluator/tests/` directory.
+
+1.  **Unit Tests (High Priority):**
+    *   **Location:** `apps/llmlogic_evaluator/tests/unit/`
+    *   **Focus:** Test individual functions within `generation.py`, `querying.py`, `analysis.py`, and `cli.py` in isolation.
+    *   **Key Areas:**
+        *   **Generation:** Verify correctness of solvers (`truth_table_solve`, `solve_prop_problem`, etc.) with known small inputs. Test helper logic (`normalize_problem`). Test balancing logic by mocking solvers.
+        *   **Querying:** Test prompt formatting, response parsing (for various LLM outputs), and the main `run_querying` logic (crucially, **mocking** the `aipip.services.TextGenerationService` to check inputs and simulate outputs).
+        *   **Analysis:** Test accuracy calculations, grouping logic, and basic report structure.
+        *   **CLI:** Test argument parsing and that the correct `run_...` function is called based on subcommands.
+
+2.  **Integration Tests (Medium Priority):**
+    *   **Location:** `apps/llmlogic_evaluator/tests/integration/`
+    *   **Focus:** Test the interaction between the application's modules, file I/O, and mocked external systems.
+    *   **Key Areas:**
+        *   **File Handling:** Use `pytest`'s `tmp_path` fixture to test reading/writing of `problems.jsonl`, `results.jsonl`, `report.txt`, ensuring correct formats (e.g., JSON Lines).
+        *   **Workflow (Mocked Service):** Test the full `generate -> query -> analyze` flow driven by `cli.py`, but with a **mocked `TextGenerationService`**. This verifies the orchestration and data handoffs without live API calls.
+
+3.  **End-to-End Tests (Lower Priority / Optional):**
+    *   **Focus:** Testing the complete user workflow, potentially including live API calls.
+    *   **Challenges:** Difficult to automate reliably due to external dependencies (cost, time, non-determinism). The mocked integration tests often provide sufficient confidence.
+
+**Running Tests:**
+
+Application-specific tests can be run using `pytest`. You might need to configure `pytest` (e.g., in `pyproject.toml`) to discover tests within the `apps/` directory or run `pytest` specifically targeting that path:
+
+```bash
+pytest apps/llmlogic_evaluator/tests/
+``` 

@@ -43,6 +43,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 markers = [
     "integration: mark tests as integration tests (require network access, API keys, and potentially .env file)"
 ] 
