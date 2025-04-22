@@ -196,6 +196,7 @@ def run_querying(input_file: str, output_file: str, service: TextGenerationServi
                     try:
                         json.dump(result_data, outfile)
                         outfile.write('\n')
+                        outfile.flush() # Ensure data is written immediately
                         results_written += 1
                     except IOError as e:
                         print(f"Error writing result to {output_file}: {e}")
