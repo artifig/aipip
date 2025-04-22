@@ -87,7 +87,18 @@ The evaluation process involves three main stages, executed via CLI subcommands:
     *   **Command:** `python -m apps.llmlogic_evaluator analyze [options]`
     *   **Functionality:** Reads the results file, compares LLM claims to ground truth, calculates accuracy statistics (overall and potentially grouped), and generates a summary report.
     *   **Output:** Saves the analysis report to a specified file (e.g., `report.txt`).
-    *   *(Example conceptual arguments: `--input <path>`, `--report <path>`, `--group-by model varnr`)*
+    *   **Key Options:**
+        *   `--input <path>`: Input results file (default: `results.jsonl`).
+        *   `--report <path>`: Output report file (default: `report.txt`).
+        *   *(TODO: Add arguments for analysis options like grouping)*
+    *   **Examples:**
+        ```bash
+        # Analyze default results.jsonl and save to report.txt
+        python -m apps.llmlogic_evaluator analyze
+
+        # Analyze a specific results file and save to a different report file
+        python -m apps.llmlogic_evaluator analyze --input run1_results.jsonl --report run1_analysis.txt
+        ```
 
 Detailed CLI arguments and options will be finalized during implementation.
 
