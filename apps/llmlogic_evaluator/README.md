@@ -76,8 +76,8 @@ The evaluation process involves three main stages, executed via CLI subcommands:
         # Query OpenAI's gpt-4o using default input/output files
         python -m apps.llmlogic_evaluator query --models gpt-4o
 
-        # Query multiple models, setting max_tokens and saving to a specific file
-        python -m apps.llmlogic_evaluator query --models gpt-4o claude-3-haiku-20240307 --max-tokens 150 --output run1_results.jsonl
+        # Query multiple models (alphabetical), setting max_tokens and saving to a specific file
+        python -m apps.llmlogic_evaluator query --models claude-3-haiku-20240307 gpt-4o --max-tokens 150 --output run1_results.jsonl
 
         # Query a Google model using problems from a specific file
         python -m apps.llmlogic_evaluator query --input data/problems_custom.jsonl --models gemini-1.5-flash-latest

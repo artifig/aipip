@@ -47,9 +47,9 @@ def main():
     parser_query = subparsers.add_parser('query', help='Query LLMs with generated problems.')
     parser_query.add_argument("--input", default="problems.jsonl", help="Input file containing generated problems.")
     parser_query.add_argument("--output", default="results.jsonl", help="Output file for LLM results (JSON Lines format).")
-    parser_query.add_argument("--models", required=True, nargs='+', help="Model name(s) to use (e.g., gpt-4o claude-3-haiku-20240307)")
+    parser_query.add_argument("--models", required=True, nargs='+', help="Model name(s) to use (e.g., claude-3-haiku-20240307 gemini-1.5-flash-latest gpt-4o)")
     parser_query.add_argument("--temperature", type=float, default=None, help="Sampling temperature.")
-    parser_query.add_argument("--max-tokens", type=int, default=None, help="Maximum generation tokens.")
+    parser_query.add_argument("--max-tokens", type=int, default=1000, help="Maximum generation tokens (default: 1000).")
     parser_query.set_defaults(func=run_querying)
 
     # --- Analyze Subcommand ---
