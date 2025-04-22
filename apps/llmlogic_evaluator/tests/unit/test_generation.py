@@ -232,4 +232,73 @@ def test_is_horn_true():
 def test_is_horn_false():
     """Test is_horn for non-Horn clauses (more than one positive literal)."""
     assert is_horn([1, 2]) is False
-    assert is_horn([-1, 2, 3]) is False 
+    assert is_horn([-1, 2, 3]) is False
+
+
+# ==========================================
+# Test cases for make_prop_problem
+# ==========================================
+
+# Need to import the function being tested
+from apps.llmlogic_evaluator.generation import make_prop_problem, is_horn
+
+# Use a fixed seed for reproducibility in tests involving randomness
+import random
+RANDOM_SEED = 42
+
+def test_make_prop_problem_basic_generation():
+    """Test basic properties of generated problems."""
+    random.seed(RANDOM_SEED)
+    varnr = 5
+    maxlen = 3
+    ratio = 4.0
+    hornflag = False
+    problem = make_prop_problem(varnr, maxlen, ratio, hornflag)
+
+    assert isinstance(problem, list)
+    assert len(problem) > 0 # Should generate some clauses
+    assert all(isinstance(clause, list) for clause in problem)
+
+    # Check clause length and variable range
+    for clause in problem:
+        assert len(clause) <= maxlen
+        assert len(clause) > 0 # Clauses shouldn't be empty
+        for lit in clause:
+            assert isinstance(lit, int)
+            assert 1 <= abs(lit) <= varnr
+            assert lit != 0
+
+def test_make_prop_problem_horn_flag_true():
+    """Test that generated clauses are Horn clauses when hornflag is True."""
+    random.seed(RANDOM_SEED)
+    varnr = 6
+    maxlen = 4
+    ratio = 3.0
+    hornflag = True
+    # Generate multiple times or a larger set to increase confidence
+    for _ in range(5): # Run a few times with the same seed reset
+        random.seed(RANDOM_SEED + _) # Slight variation seed
+        problem = make_prop_problem(varnr, maxlen, ratio, hornflag)
+        assert len(problem) > 0
+        for clause in problem:
+            assert is_horn(clause), f"Clause {clause} is not Horn, but hornflag=True"
+
+def test_make_prop_problem_includes_pos_neg_clauses():
+    """Test that the problem includes at least one fully positive and one fully negative clause."""
+    random.seed(RANDOM_SEED)
+    varnr = 7
+    maxlen = 3
+    ratio = 5.0 # Higher ratio increases likelihood of diverse clauses
+    hornflag = False
+    problem = make_prop_problem(varnr, maxlen, ratio, hornflag)
+
+    has_pos = any(all(lit > 0 for lit in clause) for clause in problem)
+    has_neg = any(all(lit < 0 for lit in clause) for clause in problem)
+
+    assert has_pos, "Generated problem missing a fully positive clause"
+    assert has_neg, "Generated problem missing a fully negative clause"
+
+def test_make_prop_problem_varnr_edge_case():
+    """Test make_prop_problem returns empty list if varnr < 2."""
+    assert make_prop_problem(1, 3, 4.0, False) == []
+    assert make_prop_problem(0, 3, 4.0, False) == [] 
