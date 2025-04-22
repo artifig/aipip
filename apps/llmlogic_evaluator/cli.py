@@ -15,6 +15,12 @@ def main():
     parser_generate = subparsers.add_parser('generate', help='Generate logic problems.')
     parser_generate.add_argument("--output", default="problems.jsonl", help="Output file for generated problems (JSON Lines format).")
     parser_generate.add_argument("--count", type=int, default=20, help="Total number of problems per configuration (must be even).")
+    parser_generate.add_argument(
+        "--resolution-strategy",
+        choices=['original', 'standard'],
+        default='original',
+        help="Resolution strategy for unsatisfiability proofs: 'original' (faster heuristic) or 'standard' (thorough)."
+    )
     # TODO: Add arguments for varnr_range, cl_len_range, horn_flags from makeproblems.py
     parser_generate.set_defaults(func=run_generation) # Link to function
 
@@ -45,7 +51,16 @@ def main():
         print(f"Executing command '{args.command}'...")
         # Placeholder call - actual call needs argument mapping
         if args.command == 'generate':
-            run_generation(output_file=args.output, count=args.count) # Example call
+            # Pass the necessary arguments to run_generation
+            # Extract generation-specific args, potentially handling varnr_range etc. later
+            gen_kwargs = {}
+            # TODO: Add logic here to parse range/flag args if they are added
+            run_generation(
+                output_file=args.output,
+                count=args.count,
+                resolution_strategy=args.resolution_strategy, # Pass strategy
+                **gen_kwargs
+            )
         elif args.command == 'query':
             # Need to init aipip service here!
             print("ERROR: Query command needs aipip service initialization!")

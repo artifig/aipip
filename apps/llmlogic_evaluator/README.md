@@ -36,7 +36,24 @@ The evaluation process involves three main stages, executed via CLI subcommands:
     *   **Command:** `python -m apps.llmlogic_evaluator generate [options]`
     *   **Functionality:** Creates a dataset of propositional logic problems based on specified parameters (variable count, clause length, Horn property, total count).
     *   **Output:** Saves problems to a specified file (e.g., `problems.jsonl`) in JSON Lines format. Each line contains problem metadata, definition, and ground truth.
-    *   *(Example conceptual arguments: `--output <path>`, `--count <N>`, `--var-range 3 10`, `--len-range 3 4`, `--horn True`)*
+    *   **Key Options:**
+        *   `--output <path>`: Set output file (default: `problems.jsonl`).
+        *   `--count <N>`: Problems per configuration (default: 20, must be even).
+        *   `--resolution-strategy {original|standard}`: Selects the resolution proving algorithm used for unsatisfiable problems (default: `original`).
+            *   `original`: Faster heuristic based on the original `makeproblems.py` script.
+            *   `standard`: More thorough, standard resolution algorithm (potentially slower on hard problems).
+        *   *(TODO: Add arguments for `--var-range`, `--len-range`, `--horn-flags`)*
+    *   **Examples:**
+        ```bash
+        # Generate default problems (20 per case, original strategy) to problems.jsonl
+        python -m apps.llmlogic_evaluator generate
+
+        # Generate 100 problems per case to a specific file
+        python -m apps.llmlogic_evaluator generate --output data/problems_100.jsonl --count 100
+
+        # Generate default problems using the standard resolution strategy
+        python -m apps.llmlogic_evaluator generate --resolution-strategy standard
+        ```
 
 2.  **Query LLMs:**
     *   **Command:** `python -m apps.llmlogic_evaluator query [options]`
