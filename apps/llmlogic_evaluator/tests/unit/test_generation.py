@@ -2,7 +2,8 @@ import pytest
 from apps.llmlogic_evaluator.generation import (
     truth_table_solve,
     solve_prop_problem,
-    normalize_problem # Import normalize for consistent test input
+    normalize_problem, # Import normalize for consistent test input
+    solve_prop_horn_problem
 )
 
 # Test cases for truth_table_solve
@@ -125,4 +126,51 @@ def test_solve_prop_problem_complex_unsat(strategy):
     """Test solve_prop_problem with a slightly more complex unsatisfiable formula."""
     clauses = normalize_problem([[1, 2], [-2, 3], [-3], [-1]])
     result = solve_prop_problem(clauses, resolution_strategy=strategy)
-    assert is_unsat_result(result) 
+    assert is_unsat_result(result)
+
+# ==========================================
+# Test cases for solve_prop_horn_problem
+# ==========================================
+
+def test_solve_prop_horn_simple_derivation():
+    """Test Horn solver: Simple derivation A, -A v B => B."""
+    clauses = [[1], [-1, 2]]
+    # Input clauses might not be normalized, but the function sorts them internally
+    result = solve_prop_horn_problem(clauses)
+    assert sorted(result) == [1, 2]
+
+def test_solve_prop_horn_contradiction():
+    """Test Horn solver: Contradiction A, -A => Contradiction (0)."""
+    clauses = [[1], [-1]]
+    result = solve_prop_horn_problem(clauses)
+    assert sorted(result) == [0, 1] # Contradiction is represented by 0
+
+def test_solve_prop_horn_no_new_derivation():
+    """Test Horn solver: No new units derivable."""
+    clauses = [[1], [-2, 3]]
+    result = solve_prop_horn_problem(clauses)
+    assert sorted(result) == [1] # Only the initial unit
+
+def test_solve_prop_horn_non_horn_input():
+    """Test Horn solver: Input is not Horn (A v B). Should derive nothing new."""
+    clauses = [[1, 2]]
+    result = solve_prop_horn_problem(clauses)
+    assert result == [] # No initial units to start propagation
+
+def test_solve_prop_horn_multi_step_derivation():
+    """Test Horn solver: Multi-step derivation A, B, -A v -B v C => C."""
+    clauses = [[1], [2], [-1, -2, 3]]
+    result = solve_prop_horn_problem(clauses)
+    assert sorted(result) == [1, 2, 3]
+
+def test_solve_prop_horn_empty_input():
+    """Test Horn solver: Empty input."""
+    clauses = []
+    result = solve_prop_horn_problem(clauses)
+    assert result == []
+
+def test_solve_prop_horn_already_satisfied_rule():
+    """Test Horn solver: Rule is satisfied by initial units, no new derivation."""
+    clauses = [[1], [-1, 2], [2]] # A, -A v B, B
+    result = solve_prop_horn_problem(clauses)
+    assert sorted(result) == [1, 2] # Should not derive B again 
