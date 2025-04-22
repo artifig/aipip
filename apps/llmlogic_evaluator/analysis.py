@@ -27,8 +27,10 @@ def run_analysis(input_file: str, report_file: str, **kwargs):
     print(f"Analyzing results from {input_file}...")
 
     # Initialize statistics counters
-    # We'll group by model primarily
+    # We'll group by model primarily for detailed stats
     model_stats: ModelGroupedStats = defaultdict(lambda: defaultdict(lambda: Counter()))
+    # Add separate aggregation for provider totals
+    provider_totals: Dict[str, Counter] = defaultdict(lambda: Counter())
     # Counter keys: 'total', 'correct', 'sat_correct', 'unsat_correct', 'unknown'
 
     results_read = 0
@@ -43,33 +45,40 @@ def run_analysis(input_file: str, report_file: str, **kwargs):
 
                     # Extract necessary data points
                     model = result_data["query_info"]["model"]
+                    provider = result_data["query_info"]["provider"]
                     ground_truth_sat = result_data["problem"]["is_satisfiable"]
-                    # Convert ground truth boolean to 0/1 for comparison
                     ground_truth_claim = 1 if ground_truth_sat else 0
                     llm_claim = result_data["llm_response"]["parsed_claim"]
 
-                    # Extract grouping keys (example: by problem params)
-                    # TODO: Make grouping configurable via kwargs
+                    # Extract grouping keys for model stats
                     max_vars = result_data["problem"]["max_vars"]
                     max_len = result_data["problem"]["max_clause_len"]
                     is_horn = result_data["problem"]["is_horn_intended"]
                     group_key = (max_vars, max_len, is_horn)
 
                     # Update counts for this model and group
-                    stats = model_stats[model][group_key]
-                    stats['total'] += 1
+                    m_stats = model_stats[model][group_key]
+                    m_stats['total'] += 1
+
+                    # Update overall provider counts
+                    p_stats = provider_totals[provider]
+                    p_stats['total'] += 1
 
                     if llm_claim == 2: # Unknown/Parsing Error
-                        stats['unknown'] += 1
+                        m_stats['unknown'] += 1
+                        p_stats['unknown'] += 1
                     elif llm_claim == ground_truth_claim:
-                        stats['correct'] += 1
+                        m_stats['correct'] += 1
+                        p_stats['correct'] += 1
                         if ground_truth_sat:
-                            stats['sat_correct'] += 1
+                            m_stats['sat_correct'] += 1
+                            p_stats['sat_correct'] += 1 # Track SAT/UNSAT correct for provider too
                         else:
-                            stats['unsat_correct'] += 1
+                            m_stats['unsat_correct'] += 1
+                            p_stats['unsat_correct'] += 1 # Track SAT/UNSAT correct for provider too
                     else:
                         # Incorrect claim (but not unknown)
-                        pass # Total is incremented, correct is not
+                        pass # Totals incremented, correct is not
 
                 except (json.JSONDecodeError, KeyError, TypeError) as e:
                     print(f"Warning: Skipping invalid/malformed line {line_num} in {input_file}: {e}")
@@ -129,6 +138,25 @@ def run_analysis(input_file: str, report_file: str, **kwargs):
         report_lines.append(f"    Correct Claims: {model_correct}")
         report_lines.append(f"    Unknown Claims: {model_unknown}")
         report_lines.append(f"    Accuracy: {model_accuracy:.2f}%\n")
+
+    # --- Accuracy per Provider --- (NEW SECTION)
+    report_lines.append("\n--- Accuracy per Provider --- (Aggregated across all models and problem types)")
+    if not provider_totals:
+        report_lines.append("  No provider data aggregated.")
+    else:
+        for provider in sorted(provider_totals.keys()):
+            prov_stats = provider_totals[provider]
+            prov_total = prov_stats['total']
+            prov_correct = prov_stats['correct']
+            prov_unknown = prov_stats['unknown']
+            prov_accuracy = (prov_correct / (prov_total - prov_unknown) * 100) if (prov_total - prov_unknown) > 0 else 0
+
+            report_lines.append(f"  Provider: {provider}")
+            report_lines.append(f"    Total Evaluated: {prov_total}")
+            report_lines.append(f"    Correct Claims: {prov_correct}")
+            report_lines.append(f"    Unknown Claims: {prov_unknown}")
+            report_lines.append(f"    Accuracy: {prov_accuracy:.2f}%\n")
+    # --- End New Section ---
 
     report_lines.append("\n--- Detailed Accuracy per Model and Problem Type (vars, len, horn) ---")
     # Group by problem type first, then model for better readability

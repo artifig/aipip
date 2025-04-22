@@ -12,21 +12,21 @@ def mock_results_data():
     """Provides a list of mock result dictionaries."""
     return [
         # Problem 1 (SAT: True, Claim: 1 (Correct))
-        {"problem": {"id": 1, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": True}, "query_info": {"model": "model-A"}, "llm_response": {"parsed_claim": 1}},
+        {"problem": {"id": 1, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": True}, "query_info": {"model": "model-A", "provider": "mock-provider-a"}, "llm_response": {"parsed_claim": 1}},
         # Problem 1 (SAT: True, Claim: 0 (Incorrect))
-        {"problem": {"id": 1, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": True}, "query_info": {"model": "model-B"}, "llm_response": {"parsed_claim": 0}},
+        {"problem": {"id": 1, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": True}, "query_info": {"model": "model-B", "provider": "mock-provider-b"}, "llm_response": {"parsed_claim": 0}},
         # Problem 2 (SAT: False, Claim: 0 (Correct))
-        {"problem": {"id": 2, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": False}, "query_info": {"model": "model-A"}, "llm_response": {"parsed_claim": 0}},
+        {"problem": {"id": 2, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": False}, "query_info": {"model": "model-A", "provider": "mock-provider-a"}, "llm_response": {"parsed_claim": 0}},
         # Problem 2 (SAT: False, Claim: 1 (Incorrect))
-        {"problem": {"id": 2, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": False}, "query_info": {"model": "model-B"}, "llm_response": {"parsed_claim": 1}},
+        {"problem": {"id": 2, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": False}, "query_info": {"model": "model-B", "provider": "mock-provider-b"}, "llm_response": {"parsed_claim": 1}},
         # Problem 3 (SAT: True, Claim: 2 (Unknown))
-        {"problem": {"id": 3, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": True}, "query_info": {"model": "model-A"}, "llm_response": {"parsed_claim": 2}},
+        {"problem": {"id": 3, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": True}, "query_info": {"model": "model-A", "provider": "mock-provider-a"}, "llm_response": {"parsed_claim": 2}},
         # Problem 3 (SAT: True, Claim: 1 (Correct))
-        {"problem": {"id": 3, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": True}, "query_info": {"model": "model-B"}, "llm_response": {"parsed_claim": 1}},
+        {"problem": {"id": 3, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": True}, "query_info": {"model": "model-B", "provider": "mock-provider-b"}, "llm_response": {"parsed_claim": 1}},
         # Problem 4 (SAT: False, Claim: 0 (Correct))
-        {"problem": {"id": 4, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": False}, "query_info": {"model": "model-A"}, "llm_response": {"parsed_claim": 0}},
+        {"problem": {"id": 4, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": False}, "query_info": {"model": "model-A", "provider": "mock-provider-a"}, "llm_response": {"parsed_claim": 0}},
         # Problem 4 (SAT: False, Claim: 0 (Correct))
-        {"problem": {"id": 4, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": False}, "query_info": {"model": "model-B"}, "llm_response": {"parsed_claim": 0}},
+        {"problem": {"id": 4, "max_vars": 4, "max_clause_len": 3, "is_horn_intended": False, "is_satisfiable": False}, "query_info": {"model": "model-B", "provider": "mock-provider-b"}, "llm_response": {"parsed_claim": 0}},
     ]
 
 @pytest.fixture
@@ -97,6 +97,31 @@ def test_run_analysis_per_model_accuracy(tmp_path, create_mock_results_file):
     assert "Unknown Claims: 0" in report_content
     assert "Accuracy: 50.00%" in report_content
 
+def test_run_analysis_per_provider_accuracy(tmp_path, create_mock_results_file):
+    """Test the calculation of per-provider accuracy."""
+    # Mock data has mock-provider-A (model-A) and mock-provider-B (model-B)
+    # Provider A: Total=4, Unknown=1, Correct=3 -> Acc = 3 / (4-1) * 100 = 100.00%
+    # Provider B: Total=4, Unknown=0, Correct=2 -> Acc = 2 / (4-0) * 100 = 50.00%
+    input_file = create_mock_results_file
+    report_file = tmp_path / "report.txt"
+
+    run_analysis(input_file=str(input_file), report_file=str(report_file))
+
+    report_content = report_file.read_text()
+    assert "Accuracy per Provider" in report_content
+    # Check Provider A
+    assert "Provider: mock-provider-a" in report_content # Provider names are lowercase in results
+    assert "Total Evaluated: 4" in report_content
+    assert "Correct Claims: 3" in report_content
+    assert "Unknown Claims: 1" in report_content
+    assert "Accuracy: 100.00%" in report_content
+    # Check Provider B
+    assert "Provider: mock-provider-b" in report_content
+    assert "Total Evaluated: 4" in report_content
+    assert "Correct Claims: 2" in report_content
+    assert "Unknown Claims: 0" in report_content
+    assert "Accuracy: 50.00%" in report_content
+
 def test_run_analysis_detailed_accuracy(tmp_path, create_mock_results_file):
     """Test the calculation of detailed accuracy per model and problem type."""
     # Recalculated expectations:
@@ -142,7 +167,13 @@ def test_run_analysis_malformed_input(tmp_path):
     """Test run_analysis with a malformed JSON line."""
     input_file = tmp_path / "malformed_results.jsonl"
     report_file = tmp_path / "report.txt"
-    input_file.write_text("this is not json\n" + json.dumps({"problem": {"id": 1, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": True}, "query_info": {"model": "model-A"}, "llm_response": {"parsed_claim": 1}})+"\n")
+    # Add the missing 'provider' key to the valid JSON line
+    valid_json_data = {
+        "problem": {"id": 1, "max_vars": 3, "max_clause_len": 3, "is_horn_intended": True, "is_satisfiable": True},
+        "query_info": {"model": "model-A", "provider": "mock-provider-a"}, # Added provider
+        "llm_response": {"parsed_claim": 1}
+    }
+    input_file.write_text("this is not json\n" + json.dumps(valid_json_data)+"\n")
 
     run_analysis(input_file=str(input_file), report_file=str(report_file))
 

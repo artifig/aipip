@@ -170,7 +170,7 @@ def test_generate_completion_with_prompt(MockAnthropicCtor, mock_anthropic_api_k
     assert call_kwargs.get('messages') == expected_anthropic_messages
     assert call_kwargs.get('model') == test_model
     assert call_kwargs.get('system') is None
-    assert call_kwargs.get('max_tokens') == 1024 # Default
+    assert call_kwargs.get('max_tokens') == 1000
 
     # Assert Response
     assert isinstance(response, CompletionResponse)
@@ -228,13 +228,6 @@ def test_generate_completion_no_input_raises_error(mock_anthropic_api_key):
         client = AnthropicClient(api_key=mock_anthropic_api_key)
         with pytest.raises(ValueError, match="Either 'prompt' or 'messages' must be provided"):
             client.generate_completion()
-
-def test_generate_completion_no_max_tokens_raises_error(mock_anthropic_api_key):
-    """Test ValueError is raised if max_tokens is explicitly None."""
-    with patch('aipip.providers.clients.anthropic_client.anthropic.Anthropic'):
-        client = AnthropicClient(api_key=mock_anthropic_api_key)
-        with pytest.raises(ValueError, match="'max_tokens' is required"):
-            client.generate_completion(prompt="test", max_tokens=None)
 
 @patch('aipip.providers.clients.anthropic_client.anthropic.Anthropic')
 def test_generate_completion_uses_default_model(MockAnthropicCtor, mock_anthropic_api_key, mock_anthropic_client_instance):

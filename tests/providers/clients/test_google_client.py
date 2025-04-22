@@ -151,8 +151,14 @@ def test_generate_completion_with_prompt(MockGenerativeModelCtor, mock_google_ap
     mock_google_model_instance.generate_content.assert_called_once()
     call_args, call_kwargs = mock_google_model_instance.generate_content.call_args
     assert call_kwargs.get('contents') == [prompt]
-    assert call_kwargs.get('generation_config') is None # No params specified
-    assert call_kwargs.get('safety_settings') is None
+    # Check that generation_config is created with the default max_tokens
+    gen_config = call_kwargs.get('generation_config')
+    assert isinstance(gen_config, generation_types.GenerationConfig)
+    assert gen_config.max_output_tokens == 1000 # Check the default value
+    assert gen_config.temperature is None # Ensure other defaults weren't set
+    assert gen_config.top_p is None
+    assert gen_config.top_k is None
+    assert call_kwargs.get('safety_settings') is None # Check other args
 
     # Assert Response
     assert isinstance(response, CompletionResponse)
