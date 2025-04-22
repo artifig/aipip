@@ -154,16 +154,34 @@ def test_full_workflow(tmp_path, mock_aipip_service, generated_problems_file):
     assert "Unknown/Unparsed Claims: 0" in report_content
     assert "Accuracy (Correct / (Total - Unknown)): 75.00%" in report_content
 
-    assert "Accuracy per Model" in report_content
-    assert "Model: model-X" in report_content
-    assert "Accuracy: 100.00%" in report_content
-    assert "Model: model-Y" in report_content
-    assert "Accuracy: 50.00%" in report_content
+    # Check for new hierarchical section header
+    assert "--- Accuracy by Provider and Model ---" in report_content
+    # Remove checks for old sections
+    # assert "Accuracy per Model" in report_content
+    # assert "Model: model-X" in report_content
+    # assert "Accuracy: 100.00%" in report_content
+    # assert "Model: model-Y" in report_content
+    # assert "Accuracy: 50.00%" in report_content
 
-    assert "Detailed Accuracy per Model and Problem Type" in report_content
+    # Check hierarchical provider/model details (adjust spacing/formatting as needed)
+    # Provider X (Model X): Total=2, Correct=2, Unk=0 => Acc=100%
+    provider_x_summary = f"  Provider: mock-provider-X | Total:    2 | Correct:    2 | Unknown:    0 | Accuracy: 100.00%"
+    model_x_detail = f"    - {'model-X':<25}: Acc={100.00:>6.2f}% (Correct: {2:>3}/{2-0:>3}, Unknown: {0:>3}, Total: {2:>4})"
+    assert provider_x_summary in report_content
+    assert model_x_detail in report_content
+
+    # Provider Y (Model Y): Total=2, Correct=1, Unk=0 => Acc=50%
+    provider_y_summary = f"  Provider: mock-provider-Y | Total:    2 | Correct:    1 | Unknown:    0 | Accuracy:  50.00%"
+    model_y_detail = f"    - {'model-Y':<25}: Acc={50.00:>6.2f}% (Correct: {1:>3}/{2-0:>3}, Unknown: {0:>3}, Total: {2:>4})"
+    assert provider_y_summary in report_content
+    assert model_y_detail in report_content
+
+    # Check that detailed section still exists and has correct content (using previously corrected values)
+    # Corrected header string to match analysis.py output
+    assert "--- Detailed Accuracy per Model and Problem Type (vars, len, horn) ---" in report_content
     # Check detailed line for Type (3, 3, False)
     assert "Problem Type: Vars=3, Len=3, Type=General" in report_content
-    model_x_detail = f"    - {'model-X':<25}: Acc={100.00:>6.2f}% (Correct: {2:>3}/{2-0:>3}, Unknown: {0:>3}, Total: {2:>4})"
-    model_y_detail = f"    - {'model-Y':<25}: Acc={50.00:>6.2f}% (Correct: {1:>3}/{2-0:>3}, Unknown: {0:>3}, Total: {2:>4})"
-    assert model_x_detail in report_content
-    assert model_y_detail in report_content 
+    detail_model_x = f"    - {'model-X':<25}: Acc={100.00:>6.2f}% (Correct: {2:>3}/{2-0:>3}, Unknown: {0:>3}, Total: {2:>4})"
+    detail_model_y = f"    - {'model-Y':<25}: Acc={50.00:>6.2f}% (Correct: {1:>3}/{2-0:>3}, Unknown: {0:>3}, Total: {2:>4})"
+    assert detail_model_x in report_content
+    assert detail_model_y in report_content 

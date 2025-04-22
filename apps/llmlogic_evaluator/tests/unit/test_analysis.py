@@ -73,62 +73,8 @@ def test_run_analysis_overall_accuracy(tmp_path, create_mock_results_file):
     assert "Unknown/Unparsed Claims: 1" in report_content
     assert "Accuracy (Correct / (Total - Unknown)): 71.43%" in report_content
 
-def test_run_analysis_per_model_accuracy(tmp_path, create_mock_results_file):
-    """Test the calculation of per-model accuracy."""
-    # Model A: Total=4, Unknown=1, Correct=2 -> Acc = 2 / (4-1) * 100 = 66.67%
-    # Model B: Total=4, Unknown=0, Correct=3 -> Acc = 3 / (4-0) * 100 = 75.00%
-    input_file = create_mock_results_file
-    report_file = tmp_path / "report.txt"
-
-    run_analysis(input_file=str(input_file), report_file=str(report_file))
-
-    report_content = report_file.read_text()
-    assert "Accuracy per Model" in report_content
-    # Check Model A - Corrected expected values
-    assert "Model: model-A" in report_content
-    assert "Total Evaluated: 4" in report_content
-    assert "Correct Claims: 3" in report_content
-    assert "Unknown Claims: 1" in report_content
-    assert "Accuracy: 100.00%" in report_content
-    # Check Model B - Recalculated expected values
-    assert "Model: model-B" in report_content
-    assert "Total Evaluated: 4" in report_content
-    assert "Correct Claims: 2" in report_content
-    assert "Unknown Claims: 0" in report_content
-    assert "Accuracy: 50.00%" in report_content
-
-def test_run_analysis_per_provider_accuracy(tmp_path, create_mock_results_file):
-    """Test the calculation of per-provider accuracy."""
-    # Mock data has mock-provider-A (model-A) and mock-provider-B (model-B)
-    # Provider A: Total=4, Unknown=1, Correct=3 -> Acc = 3 / (4-1) * 100 = 100.00%
-    # Provider B: Total=4, Unknown=0, Correct=2 -> Acc = 2 / (4-0) * 100 = 50.00%
-    input_file = create_mock_results_file
-    report_file = tmp_path / "report.txt"
-
-    run_analysis(input_file=str(input_file), report_file=str(report_file))
-
-    report_content = report_file.read_text()
-    assert "Accuracy per Provider" in report_content
-    # Check Provider A
-    assert "Provider: mock-provider-a" in report_content # Provider names are lowercase in results
-    assert "Total Evaluated: 4" in report_content
-    assert "Correct Claims: 3" in report_content
-    assert "Unknown Claims: 1" in report_content
-    assert "Accuracy: 100.00%" in report_content
-    # Check Provider B
-    assert "Provider: mock-provider-b" in report_content
-    assert "Total Evaluated: 4" in report_content
-    assert "Correct Claims: 2" in report_content
-    assert "Unknown Claims: 0" in report_content
-    assert "Accuracy: 50.00%" in report_content
-
-def test_run_analysis_detailed_accuracy(tmp_path, create_mock_results_file):
-    """Test the calculation of detailed accuracy per model and problem type."""
-    # Recalculated expectations:
-    # Type (3, 3, True): Model A: Correct=2, Total=2, Unk=0 => Acc=100.00%
-    #                     Model B: Correct=0, Total=2, Unk=0 => Acc=0.00%
-    # Type (4, 3, False): Model A: Correct=1, Total=2, Unk=1 => Acc=100.00%
-    #                     Model B: Correct=2, Total=2, Unk=0 => Acc=100.00%
+def test_run_analysis_provider_model_summary(tmp_path, create_mock_results_file):
+    """Test the hierarchical provider/model accuracy summary section."""
     input_file = create_mock_results_file
     report_file = tmp_path / "report.txt"
 
