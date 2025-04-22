@@ -2,10 +2,14 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
 # Placeholder for a potential structured response object later
+# Using dataclass for simplicity and type hints
+from dataclasses import dataclass, field
+
+@dataclass
 class CompletionResponse:
-    def __init__(self, text: str, metadata: Optional[Dict[str, Any]] = None):
-        self.text = text
-        self.metadata = metadata or {}
+    text: str
+    provider_name: str # Added provider name
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __str__(self) -> str:
         return self.text

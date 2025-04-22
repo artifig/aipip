@@ -17,7 +17,11 @@ def mock_provider_client() -> MagicMock:
     """Fixture for a mocked TextProviderInterface (like OpenAIClient)."""
     mock_client = MagicMock(spec=TextProviderInterface)
     # Configure the mock response from the client's generate_completion
-    mock_response = CompletionResponse(text="Mocked completion text", metadata={'model': 'mock-model'})
+    mock_response = CompletionResponse(
+        text="Mocked completion text",
+        provider_name="mock_provider",
+        metadata={'model': 'mock-model'}
+    )
     mock_client.generate_completion.return_value = mock_response
     return mock_client
 

@@ -52,7 +52,7 @@ def test_anthropic_live_message_completion():
 
     assert isinstance(response.metadata, dict)
     assert response.metadata.get('model') is not None
-    assert response.metadata.get('finish_reason') is not None # stop_reason
+    assert response.metadata.get('stop_reason') is not None
     assert response.metadata.get('id') is not None
     assert response.metadata.get('role') == 'assistant'
     assert isinstance(response.metadata.get('usage'), dict)

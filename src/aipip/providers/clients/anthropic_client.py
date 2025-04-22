@@ -142,31 +142,32 @@ class AnthropicClient(TextProviderInterface):
 
             response = self.client.messages.create(**api_kwargs)
 
-            # Extract text and metadata
+            # Extract text content
             completion_text = ""
-            if response.content and isinstance(response.content, list) and hasattr(response.content[0], 'text'):
-                 completion_text = response.content[0].text
+            if response.content and isinstance(response.content, list):
+                # Assuming text content for now
+                text_blocks = [block.text for block in response.content if hasattr(block, 'text')]
+                completion_text = " ".join(text_blocks)
 
-            finish_reason = response.stop_reason
-            # Extract usage data directly via attributes
-            usage_metadata = None
-            if response.usage:
-                usage_metadata = {
-                    'input_tokens': response.usage.input_tokens,
-                    'output_tokens': response.usage.output_tokens
-                }
-
+            # Prepare metadata
             metadata = {
-                'finish_reason': finish_reason,
-                'usage': usage_metadata,
-                'model': response.model,
-                'id': response.id,
-                'role': response.role,
-                'type': response.type,
-                'stop_sequence': response.stop_sequence,
+                "id": response.id,
+                "model": response.model,
+                "role": response.role,
+                "stop_reason": response.stop_reason,
+                "stop_sequence": response.stop_sequence,
+                "type": response.type,
+                "usage": {
+                    "input_tokens": response.usage.input_tokens,
+                    "output_tokens": response.usage.output_tokens,
+                }
             }
 
-            return CompletionResponse(text=completion_text.strip(), metadata=metadata)
+            return CompletionResponse(
+                text=completion_text.strip(),
+                provider_name="anthropic",
+                metadata=metadata
+            )
 
         except anthropic.APIError as e:
             print(f"Anthropic API returned an API Error: {e}")

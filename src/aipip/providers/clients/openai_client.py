@@ -77,7 +77,24 @@ class OpenAIClient(TextProviderInterface):
                 'created': response.created,
             }
 
-            return CompletionResponse(text=completion_text.strip(), metadata=metadata)
+            # Include additional metadata from the choice
+            choice = response.choices[0]
+            metadata["finish_reason"] = choice.finish_reason
+            metadata["logprobs"] = choice.logprobs
+
+            # Include usage stats if available
+            if hasattr(response, 'usage') and response.usage:
+                metadata["usage"] = {
+                    "completion_tokens": response.usage.completion_tokens,
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                }
+
+            return CompletionResponse(
+                text=completion_text.strip(),
+                provider_name="openai",
+                metadata=metadata
+            )
 
         except openai.APIError as e:
             # Handle potential API errors (e.g., rate limits, authentication)

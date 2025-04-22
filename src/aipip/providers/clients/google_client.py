@@ -158,7 +158,29 @@ class GoogleClient(TextProviderInterface):
                 'model': model_name,
             }
 
-            return CompletionResponse(text=completion_text.strip(), metadata=metadata)
+            # Include prompt feedback if available
+            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                 metadata["prompt_feedback"] = {
+                     "block_reason": response.prompt_feedback.block_reason.name if response.prompt_feedback.block_reason else None,
+                     "safety_ratings": [
+                         {"category": rating.category.name, "probability": rating.probability.name}
+                         for rating in response.prompt_feedback.safety_ratings
+                     ]
+                 }
+
+            # Include usage metadata if available (may not always be present)
+            if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                metadata["usage"] = {
+                    "prompt_token_count": response.usage_metadata.prompt_token_count,
+                    "candidates_token_count": response.usage_metadata.candidates_token_count,
+                    "total_token_count": response.usage_metadata.total_token_count
+                }
+
+            return CompletionResponse(
+                text=completion_text.strip(),
+                provider_name="google",
+                metadata=metadata
+            )
 
         except Exception as e:
             # Catch potential exceptions from the Google library

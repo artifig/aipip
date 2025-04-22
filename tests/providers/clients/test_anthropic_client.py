@@ -147,7 +147,7 @@ def test_generate_completion_with_messages(MockAnthropicCtor, mock_anthropic_api
     assert isinstance(response, CompletionResponse)
     assert response.text == "Mock Anthropic completion text"
     assert response.metadata['model'] == mock_anthropic_client_instance.messages.create.return_value.model
-    assert response.metadata['finish_reason'] == "end_turn"
+    assert response.metadata['stop_reason'] == mock_anthropic_client_instance.messages.create.return_value.stop_reason
     assert response.metadata['usage'] == {'input_tokens': 15, 'output_tokens': 25}
 
 @patch('aipip.providers.clients.anthropic_client.anthropic.Anthropic')

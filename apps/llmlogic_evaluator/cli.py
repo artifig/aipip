@@ -13,6 +13,20 @@ from aipip.config.loader import load_config
 from aipip.providers.registry import ProviderRegistry
 from aipip.services.text_generation_service import TextGenerationService
 
+# Helper function to infer provider from model name (simple version)
+def infer_provider(model_name: str) -> str:
+    model_lower = model_name.lower()
+    if model_lower.startswith('claude-'):
+        return "anthropic"
+    elif model_lower.startswith('gemini-'):
+        return "google"
+    elif model_lower.startswith('gpt-'):
+        return "openai"
+    # Add more rules as needed
+    else:
+        # Default or raise error? Let's raise for now.
+        raise ValueError(f"Could not infer provider for model: {model_name}")
+
 def main():
     parser = argparse.ArgumentParser(description="LLMLogicEvaluator: Evaluate LLMs on propositional logic.")
     subparsers = parser.add_subparsers(dest='command', help='Sub-command help', required=True)
@@ -81,17 +95,25 @@ def main():
         )
     elif args.command == 'query':
         if aipip_service:
-            # Prepare kwargs for run_querying, excluding command-specific ones
             query_kwargs = {
                 "temperature": args.temperature,
                 "max_tokens": args.max_tokens,
             }
+            # Convert models to list of (provider, model) tuples
+            model_provider_list = []
+            try:
+                for model_name in args.models:
+                    provider_name = infer_provider(model_name)
+                    model_provider_list.append((provider_name, model_name))
+            except ValueError as e:
+                print(f"Error: {e}")
+                sys.exit(1)
+
             run_querying(
                 input_file=args.input,
                 output_file=args.output,
                 service=aipip_service,
-                providers=[], # Pass empty list, service handles provider lookup
-                models=args.models,
+                model_provider_list=model_provider_list, # Pass list of tuples
                 **query_kwargs
             )
         else:

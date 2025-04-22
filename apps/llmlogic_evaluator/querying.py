@@ -98,7 +98,7 @@ def parse_llm_response(response_text: str) -> int:
 
 # ================== Main Querying Function ==================
 
-def run_querying(input_file: str, output_file: str, service: TextGenerationService, providers: List[str], models: List[str], **kwargs):
+def run_querying(input_file: str, output_file: str, service: TextGenerationService, model_provider_list: List[tuple[str, str]], **kwargs):
     """Runs queries for problems in a dataset against specified LLMs.
 
     Reads problems from input_file, queries models via the TextGenerationService,
@@ -108,15 +108,16 @@ def run_querying(input_file: str, output_file: str, service: TextGenerationServi
         input_file: Path to the input problems file (JSON Lines).
         output_file: Path to the output results file (JSON Lines).
         service: An initialized TextGenerationService instance.
-        providers: List of provider names (currently unused, service handles provider lookup).
-        models: List of model names to query.
+        model_provider_list: List of (provider_name, model_name) tuples to query.
         **kwargs: Additional generation parameters (temperature, max_tokens, etc.).
                  Should be compatible with aipip service's generate method.
     """
     print(f"Starting LLM querying...")
     print(f"  Input problems: {input_file}")
     print(f"  Output results: {output_file}")
-    print(f"  Models: {models}")
+    # Combine model/provider info for printing
+    models_str = ", ".join([f"{p}:{m}" for p, m in model_provider_list])
+    print(f"  Models (Provider:Model): {models_str}")
     print(f"  Generation Params: {kwargs}")
 
     # Prepare generation parameters (filter out None values if needed by service)
@@ -147,26 +148,27 @@ def run_querying(input_file: str, output_file: str, service: TextGenerationServi
                     continue
 
                 # Query each specified model for this problem
-                for model_name in models:
-                    print(f"  Querying model: {model_name}...")
+                for provider_name, model_name in model_provider_list:
+                    print(f"  Querying model: {model_name} (Provider: {provider_name})...")
                     try:
-                        # Call the aipip service
+                        # Call the aipip service, now passing provider_name
                         response_data = service.generate(
+                            provider_name=provider_name,
                             model=model_name,
                             prompt=prompt,
                             **generation_params
                         )
                         response_text = response_data.text
-                        provider_name = response_data.provider_name # Get provider info from service
-                        print(f"    Provider: {provider_name}, Response received ({len(response_text)} chars). Parsing...")
+                        # We already have provider_name, but confirm if service returns it too
+                        returned_provider = response_data.provider_name
+                        print(f"    Provider: {returned_provider}, Response received ({len(response_text)} chars). Parsing...")
 
                     except Exception as e:
-                        print(f"Error calling TextGenerationService for model {model_name} on problem {problem_data.get('id', 'N/A')}: {e}")
+                        print(f"Error calling TextGenerationService for model {model_name} (provider {provider_name}) on problem {problem_data.get('id', 'N/A')}: {e}")
                         response_text = f"ERROR: {e}"
-                        provider_name = "error"
+                        # Use the intended provider_name even if call failed
+                        returned_provider = provider_name
                         errors_encountered += 1
-                        # Optionally continue to next model or skip problem entirely
-                        # continue # Skip to next model for this problem
 
                     # Parse the LLM response
                     parsed_claim = parse_llm_response(response_text)
@@ -177,7 +179,7 @@ def run_querying(input_file: str, output_file: str, service: TextGenerationServi
                         "problem": problem_data,
                         "query_info": {
                             "model": model_name,
-                            "provider": provider_name,
+                            "provider": returned_provider, # Use provider name from service/input
                             "prompt": prompt,
                             "generation_params": generation_params,
                         },
@@ -195,7 +197,6 @@ def run_querying(input_file: str, output_file: str, service: TextGenerationServi
                     except IOError as e:
                         print(f"Error writing result to {output_file}: {e}")
                         errors_encountered += 1
-                        # Consider stopping if file writing fails repeatedly
 
     except FileNotFoundError:
         print(f"Error: Input file not found: {input_file}")
