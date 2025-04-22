@@ -4,6 +4,7 @@
 
 import json
 import time # Potentially needed if we add rate limiting/retries
+import os # Import os for makedirs
 from typing import List, Dict, Any
 
 # Import from aipip (assuming it's installed)
@@ -122,92 +123,100 @@ def run_querying(input_file: str, output_file: str, service: TextGenerationServi
     print(f"  Models (Provider:Model): {models_str}")
     print(f"  Generation Params: {kwargs}")
 
-    # Prepare generation parameters (filter out None values if needed by service)
-    generation_params = {k: v for k, v in kwargs.items() if v is not None}
-
     problems_processed = 0
     results_written = 0
     errors_encountered = 0
 
+    # Ensure output directory exists (moved outside the loop)
     try:
-        with open(input_file, 'r') as infile, open(output_file, 'a') as outfile:
+        output_dir = os.path.dirname(output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+    except OSError as e:
+        print(f"Error creating output directory {output_dir}: {e}")
+        return
+
+    try:
+        with open(input_file, 'r') as infile:
+            # Read all problems first (might use more memory for large files)
+            # Alternatively, process line by line but open/close output file each time
+            problems = []
             for line in infile:
                 try:
-                    problem_data = json.loads(line.strip())
+                    problems.append(json.loads(line.strip()))
                 except json.JSONDecodeError:
                     print(f"Warning: Skipping invalid JSON line in {input_file}: {line.strip()}")
                     continue
 
-                problems_processed += 1
-                print(f"\nProcessing problem ID: {problem_data.get('id', 'N/A')}")
+        # Process problems one by one, opening/closing output file each time
+        for problem_data in problems:
+            problems_processed += 1
+            print(f"\nProcessing problem ID: {problem_data.get('id', 'N/A')}")
 
-                # Format the prompt for this problem
+            # Format the prompt
+            try:
+                prompt = format_prompt_v1(problem_data)
+            except ValueError as e:
+                print(f"Error formatting prompt for problem {problem_data.get('id', 'N/A')}: {e}. Skipping.")
+                errors_encountered += 1
+                continue
+
+            # Query each specified model
+            for provider_name, model_name in model_provider_list:
+                print(f"  Querying model: {model_name} (Provider: {provider_name})...")
+                response_data = None # Initialize
                 try:
-                    prompt = format_prompt_v1(problem_data)
-                except ValueError as e:
-                    print(f"Error formatting prompt for problem {problem_data.get('id', 'N/A')}: {e}. Skipping.")
+                    response_data = service.generate(
+                        provider_name=provider_name,
+                        model=model_name,
+                        prompt=prompt,
+                        **kwargs
+                    )
+                    response_text = response_data.text
+                    returned_provider = response_data.provider_name
+                    print(f"    Provider: {returned_provider}, Response received ({len(response_text)} chars). Parsing...")
+                except Exception as e:
+                    print(f"Error calling TextGenerationService for model {model_name} (provider {provider_name}) on problem {problem_data.get('id', 'N/A')}: {e}")
+                    response_text = f"ERROR: {e}"
+                    returned_provider = provider_name
                     errors_encountered += 1
-                    continue
 
-                # Query each specified model for this problem
-                for provider_name, model_name in model_provider_list:
-                    print(f"  Querying model: {model_name} (Provider: {provider_name})...")
-                    try:
-                        # Call the aipip service, now passing provider_name
-                        response_data = service.generate(
-                            provider_name=provider_name,
-                            model=model_name,
-                            prompt=prompt,
-                            **generation_params
-                        )
-                        response_text = response_data.text
-                        # We already have provider_name, but confirm if service returns it too
-                        returned_provider = response_data.provider_name
-                        print(f"    Provider: {returned_provider}, Response received ({len(response_text)} chars). Parsing...")
+                # Parse the LLM response
+                parsed_claim = parse_llm_response(response_text)
+                print(f"    Parsed claim: {parsed_claim} (0=UNSAT, 1=SAT, 2=Unknown)")
 
-                    except Exception as e:
-                        print(f"Error calling TextGenerationService for model {model_name} (provider {provider_name}) on problem {problem_data.get('id', 'N/A')}: {e}")
-                        response_text = f"ERROR: {e}"
-                        # Use the intended provider_name even if call failed
-                        returned_provider = provider_name
-                        errors_encountered += 1
-
-                    # Parse the LLM response
-                    parsed_claim = parse_llm_response(response_text)
-                    print(f"    Parsed claim: {parsed_claim} (0=UNSAT, 1=SAT, 2=Unknown)")
-
-                    # Structure the result
-                    result_data = {
-                        "problem": problem_data,
-                        "query_info": {
-                            "model": model_name,
-                            "provider": returned_provider, # Use provider name from service/input
-                            "prompt": prompt,
-                            "generation_params": generation_params,
-                        },
-                        "llm_response": {
-                            "text": response_text,
-                            "parsed_claim": parsed_claim,
-                            "metadata": response_data.metadata if response_data else {} # Add metadata
-                        }
+                # Structure the result
+                result_data = {
+                    "problem": problem_data,
+                    "query_info": {
+                        "model": model_name,
+                        "provider": returned_provider,
+                        "prompt": prompt,
+                        "generation_params": kwargs,
+                    },
+                    "llm_response": {
+                        "text": response_text,
+                        "parsed_claim": parsed_claim,
+                        "metadata": response_data.metadata if response_data else {}
                     }
+                }
 
-                    # Write result to output file
-                    try:
+                # Open, write, and close output file for *each* result
+                try:
+                    with open(output_file, 'a') as outfile: # Still append mode
                         json.dump(result_data, outfile)
                         outfile.write('\n')
-                        outfile.flush() # Ensure data is written immediately
-                        results_written += 1
-                    except IOError as e:
-                        print(f"Error writing result to {output_file}: {e}")
-                        errors_encountered += 1
+                    results_written += 1
+                except IOError as e:
+                    print(f"Error writing result to {output_file}: {e}")
+                    errors_encountered += 1
 
     except FileNotFoundError:
         print(f"Error: Input file not found: {input_file}")
-        return # Stop if input file is missing
+        return
     except IOError as e:
-        print(f"Error opening input/output file: {e}")
-        return # Stop on other file errors
+        print(f"Error reading input file {input_file}: {e}")
+        return
 
     print("\nQuerying complete.")
     print(f"  Problems processed: {problems_processed}")

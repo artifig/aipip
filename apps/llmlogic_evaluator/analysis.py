@@ -6,6 +6,7 @@ import json
 from typing import Dict, Any, List, Tuple
 from collections import defaultdict, Counter
 import statistics # For potential future use (e.g., std dev)
+import os # Import os for makedirs
 
 # Type definition for cleaner code
 Stats = Dict[str, int] # e.g., {'total': 10, 'correct': 8, ...}
@@ -25,6 +26,15 @@ def run_analysis(input_file: str, report_file: str, **kwargs):
         **kwargs: Additional analysis parameters (e.g., group_by - not currently implemented).
     """
     print(f"Analyzing results from {input_file}...")
+
+    # Ensure report directory exists
+    try:
+        report_dir = os.path.dirname(report_file)
+        if report_dir:
+            os.makedirs(report_dir, exist_ok=True)
+    except OSError as e:
+        print(f"Error creating report directory {report_dir}: {e}")
+        return # Exit if directory cannot be created
 
     # Initialize statistics counters
     # 1. For detailed report (problem type -> model -> stats)

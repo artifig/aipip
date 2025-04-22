@@ -42,9 +42,14 @@ def main():
     parser = argparse.ArgumentParser(description="LLMLogicEvaluator: Evaluate LLMs on propositional logic.")
     subparsers = parser.add_subparsers(dest='command', help='Sub-command help', required=True)
 
+    # Define default output directory relative to app location (might need adjustment)
+    # Assuming script runs from project root where 'apps' is visible
+    DEFAULT_OUTPUT_DIR = "apps/llmlogic_evaluator/output"
+
     # --- Generate Subcommand ---
     parser_generate = subparsers.add_parser('generate', help='Generate logic problems.')
-    parser_generate.add_argument("--output", default="problems.jsonl", help="Output file for generated problems (JSON Lines format).")
+    # Update default output path
+    parser_generate.add_argument("--output", default=os.path.join(DEFAULT_OUTPUT_DIR, "problems.jsonl"), help=f"Output file for generated problems (default: {DEFAULT_OUTPUT_DIR}/problems.jsonl).")
     parser_generate.add_argument("--count", type=int, default=20, help="Total number of problems per configuration (must be even).")
     parser_generate.add_argument(
         "--resolution-strategy",
@@ -56,8 +61,9 @@ def main():
 
     # --- Query Subcommand ---
     parser_query = subparsers.add_parser('query', help='Query LLMs with generated problems.')
-    parser_query.add_argument("--input", default="problems.jsonl", help="Input file containing generated problems.")
-    parser_query.add_argument("--output", default="results.jsonl", help="Output file for LLM results (JSON Lines format).")
+    # Update default input and output paths
+    parser_query.add_argument("--input", default=os.path.join(DEFAULT_OUTPUT_DIR, "problems.jsonl"), help=f"Input file containing generated problems (default: {DEFAULT_OUTPUT_DIR}/problems.jsonl).")
+    parser_query.add_argument("--output", default=os.path.join(DEFAULT_OUTPUT_DIR, "results.jsonl"), help=f"Output file for LLM results (default: {DEFAULT_OUTPUT_DIR}/results.jsonl, appends if exists).")
     parser_query.add_argument("--models", required=True, nargs='+', help="Model name(s) to use (e.g., claude-3-haiku-20240307 gemini-1.5-flash-latest gpt-4o)")
     parser_query.add_argument("--temperature", type=float, default=None, help="Sampling temperature.")
     parser_query.add_argument("--max-tokens", type=int, default=1000, help="Maximum generation tokens (default: 1000).")
@@ -65,8 +71,9 @@ def main():
 
     # --- Analyze Subcommand ---
     parser_analyze = subparsers.add_parser('analyze', help='Analyze LLM results.')
-    parser_analyze.add_argument("--input", default="results.jsonl", help="Input file containing LLM results.")
-    parser_analyze.add_argument("--report", default="report.txt", help="Output file for analysis report.")
+    # Update default input and report paths
+    parser_analyze.add_argument("--input", default=os.path.join(DEFAULT_OUTPUT_DIR, "results.jsonl"), help=f"Input file containing LLM results (default: {DEFAULT_OUTPUT_DIR}/results.jsonl).")
+    parser_analyze.add_argument("--report", default=os.path.join(DEFAULT_OUTPUT_DIR, "report.txt"), help=f"Output file for analysis report (default: {DEFAULT_OUTPUT_DIR}/report.txt).")
     parser_analyze.set_defaults(func=run_analysis)
 
     args = parser.parse_args()

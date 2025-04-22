@@ -6,6 +6,7 @@ import random
 import math
 import json  # Added for later output step
 import itertools # For iterating through parameter combinations
+import os # Import os for makedirs
 
 
 # ================== Generation Core ==================
@@ -647,6 +648,15 @@ def run_generation(output_file: str, count: int, resolution_strategy: str = 'ori
             horn_flags (list[bool]): List of horn flags (True, False, or both).
     """
     global allcls # Needed for makeproof
+
+    # Ensure output directory exists
+    try:
+        output_dir = os.path.dirname(output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+    except OSError as e:
+        print(f"Error creating output directory {output_dir}: {e}")
+        return # Exit if directory cannot be created
 
     if count % 2 != 0:
         raise ValueError("Count must be an even number for balanced generation.")
