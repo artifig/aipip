@@ -187,6 +187,7 @@ def run_querying(input_file: str, output_file: str, service: TextGenerationServi
                         "llm_response": {
                             "text": response_text,
                             "parsed_claim": parsed_claim,
+                            "metadata": response_data.metadata if response_data else {} # Add metadata
                         }
                     }
 
