@@ -33,19 +33,19 @@ This structure separates the core application logic from the CLI handling, impro
 The evaluation process involves three main stages, executed via CLI subcommands:
 
 1.  **Generate Problems:**
-    *   **Command:** `python -m llmlogic_evaluator generate [options]`
+    *   **Command:** `python -m apps.llmlogic_evaluator generate [options]`
     *   **Functionality:** Creates a dataset of propositional logic problems based on specified parameters (variable count, clause length, Horn property, total count).
     *   **Output:** Saves problems to a specified file (e.g., `problems.jsonl`) in JSON Lines format. Each line contains problem metadata, definition, and ground truth.
     *   *(Example conceptual arguments: `--output <path>`, `--count <N>`, `--var-range 3 10`, `--len-range 3 4`, `--horn True`)*
 
 2.  **Query LLMs:**
-    *   **Command:** `python -m llmlogic_evaluator query [options]`
+    *   **Command:** `python -m apps.llmlogic_evaluator query [options]`
     *   **Functionality:** Reads problems from the generated file, formats prompts, uses the `aipip` library to query specified providers/models, parses responses, and saves results.
     *   **Output:** Saves detailed results (problem data, prompt, provider/model info, LLM response text, parsed claim, metadata) to a specified file (e.g., `results.jsonl`).
     *   *(Example conceptual arguments: `--input <path>`, `--output <path>`, `--providers openai google`, `--models gpt-4o gemini-1.5-flash`, `--temperature 0.5`, `--max-tokens 100`)*
 
 3.  **Analyze Results:**
-    *   **Command:** `python -m llmlogic_evaluator analyze [options]`
+    *   **Command:** `python -m apps.llmlogic_evaluator analyze [options]`
     *   **Functionality:** Reads the results file, compares LLM claims to ground truth, calculates accuracy statistics (overall and potentially grouped), and generates a summary report.
     *   **Output:** Saves the analysis report to a specified file (e.g., `report.txt`).
     *   *(Example conceptual arguments: `--input <path>`, `--report <path>`, `--group-by model varnr`)*

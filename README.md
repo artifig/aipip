@@ -80,10 +80,9 @@ The platform follows a modular, service-oriented architecture to promote decoupl
 │       └── cli/
 │           ├── __init__.py
 │           └── run_text_generation.py # Example CLI using the service
-├── evaluation_app/         # Example application using the aipip library
-│   ├── __init__.py
-│   ├── run_evaluation.py
-│   └── ...               # App-specific logic, prompts, etc.
+├── apps/
+│   └── llmlogic_evaluator/ # Example application using aipip
+│       └── ...
 ├── tests/
 │   ├── integration/
 │   ├── providers/
@@ -137,6 +136,9 @@ This README outlines the target architecture. We will migrate functionality from
 *(This list will be updated as the project progresses)*
 
 ## Setup & Usage
+
+This section covers setup for the core `aipip` library and its example CLI.
+See the README within `apps/llmlogic_evaluator/` for instructions specific to that application.
 
 1.  **Prerequisites:** Python 3.9+
 2.  **Installation:** Follow the [Local Development Setup](#local-development-setup) instructions to install the package editable along with development dependencies (`pip install -e '.[dev]'`).
